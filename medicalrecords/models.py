@@ -1,11 +1,21 @@
 from django.db import models
-from django.conf import settings
+from patients.models import Patient   # Import du modèle Patient
+from doctors.models import Doctor     # Import du modèle Doctor
 
 class MedicalRecord(models.Model):
-    patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    patient = models.ForeignKey(
+        Patient, 
+        on_delete=models.CASCADE, 
+        related_name="medical_records"
+    )
+    doctor = models.ForeignKey(
+        Doctor, 
+        on_delete=models.CASCADE, 
+        related_name="medical_records"
+    )
+    record_type = models.CharField(max_length=100)
     description = models.TextField()
-    file = models.FileField(upload_to='medical_records/', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Record {self.id}"
