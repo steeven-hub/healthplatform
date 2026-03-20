@@ -1,12 +1,19 @@
 from django.db import models
-from patients.models import Patient
-from doctors.models import Doctor
+from django.conf import settings
 
 class Consultation(models.Model):
+    patient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='patient_consultations'
+    )
+    doctor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='doctor_consultations'
+    )
+    diagnosis = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    patient = models.ForeignKey(Patient,on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctor,on_delete=models.CASCADE)
-
-    date = models.DateField()
-    diagnostic = models.TextField()
-    prescription = models.TextField()
+    def __str__(self):
+        return f"Consultation {self.id}"

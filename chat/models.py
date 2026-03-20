@@ -1,18 +1,18 @@
 from django.db import models
-
+from django.conf import settings
 
 class ChatSession(models.Model):
-    dateDebut = models.DateTimeField(auto_now_add=True)
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Session {self.id}"
-
+        return f"ChatSession {self.id}"
 
 class ChatMessage(models.Model):
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE)
-    sender = models.CharField(max_length=50)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.message
+        return f"Message {self.id}"
