@@ -1,5 +1,5 @@
 ﻿# afrihealth
-''''powershell
+````powershell
  git clone https://github.com/steeven-hub/afrihealth
 cd afrihealth
 python -m venv venv
