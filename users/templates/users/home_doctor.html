@@ -1,3 +1,65 @@
-<h2>Bienvenue Dr. {{ user.username }} (Doctor)</h2>
-<p>Voici votre tableau de bord médical.</p>
-<a href="{% url 'logout' %}">Déconnexion</a>
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Tableau de bord Docteur</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Rendez-vous -->
+    <div class="bg-white p-4 rounded shadow">
+        <h2 class="font-semibold mb-2">Mes rendez-vous</h2>
+        {% if appointments %}
+            <ul class="list-disc pl-5">
+            {% for appt in appointments %}
+                <li>{{ appt.date }} - Patient : {{ appt.patient.user.username }} - Statut : {{ appt.status }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucun rendez-vous prévu.</p>
+        {% endif %}
+    </div>
+
+    <!-- Mes patients -->
+    <div class="bg-white p-4 rounded shadow">
+        <h2 class="font-semibold mb-2">Mes patients</h2>
+        {% if patients %}
+            <ul class="list-disc pl-5">
+            {% for patient in patients %}
+                <li>{{ patient.user.username }} - Téléphone : {{ patient.user.phone_number }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Pas encore de patients.</p>
+        {% endif %}
+    </div>
+
+    <!-- Messages -->
+    <div class="bg-white p-4 rounded shadow md:col-span-2">
+        <h2 class="font-semibold mb-2">Messages</h2>
+        {% if messages %}
+            <ul class="list-disc pl-5">
+            {% for msg in messages %}
+                <li>{{ msg.sender.username }} → {{ msg.receiver.username }} : {{ msg.content }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucun message.</p>
+        {% endif %}
+    </div>
+
+    <!-- Notifications -->
+    <div class="bg-white p-4 rounded shadow md:col-span-2">
+        <h2 class="font-semibold mb-2">Notifications</h2>
+        {% if notifications %}
+            <ul class="list-disc pl-5">
+            {% for note in notifications %}
+                <li>{{ note.created_at }} - {{ note.content }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucune notification.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     path('register/patient/', views.register_patient, name='register_patient'),
     path('register/doctor/', views.register_doctor, name='register_doctor'),
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.user_logout, name='logout'),
+    path('login/', views.user_login, name='user_login'),  # 🔹 renommé pour cohérence
+    path('logout/', views.user_logout, name='user_logout'),  # 🔹 renommé pour cohérence
     path('', views.home, name='home'),
 ]

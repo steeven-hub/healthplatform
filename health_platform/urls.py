@@ -1,28 +1,25 @@
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from patients.views import PatientViewSet
-from doctors.views import DoctorViewSet
-from appointments.views import AppointmentViewSet
-from consultations.views import ConsultationViewSet
-from medicalrecords.views import MedicalRecordViewSet
-from chat.views import ChatSessionViewSet, ChatMessageViewSet
-from notifications.views import NotificationViewSet
-from users.api_views import UserViewSet  # <- DRF
-
-router = DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'patients', PatientViewSet)
-router.register(r'doctors', DoctorViewSet)
-router.register(r'appointments', AppointmentViewSet)
-router.register(r'consultations', ConsultationViewSet)
-router.register(r'medicalrecords', MedicalRecordViewSet)
-router.register(r'chatsessions', ChatSessionViewSet)
-router.register(r'chatmessages', ChatMessageViewSet)
-router.register(r'notifications', NotificationViewSet)
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
-    path('', include('users.urls')),  # <- routes HTML
+    
+    # API globale (Centralise tes endpoints REST)
+    path('api/', include('api.urls')), 
+    
+    # URLs des applications spécifiques
+    path('users/', include('users.urls')),
+    path('appointments/', include('appointments.urls')),
+    path('chat/', include('chat.urls')),
+    
+    # On peut aussi ajouter les autres si tu as des vues spécifiques
+    # path('patients/', include('patients.urls')),
+    # path('doctors/', include('doctors.urls')),
 ]
+
+# INDISPENSABLE : Permet de consulter les fichiers (PDF, Images) en développement
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

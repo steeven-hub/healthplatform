@@ -1,11 +1,25 @@
 from django.db import models
-from django.conf import settings
+from patients.models import Patient
+from doctors.models import Doctor
 
 class Appointment(models.Model):
-    patient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='patient_appointments')
-    doctor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='doctor_appointments')
+    # On utilise les modèles spécifiques pour avoir accès aux infos médicales
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='appointments')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
+    
     date = models.DateTimeField()
-    status = models.CharField(max_length=20, default='pending')
+    reason = models.TextField(null=True, blank=True) # Toujours utile de savoir pourquoi on consulte !
+    
+    # Utiliser des choix (choices) rend le filtrage plus propre
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('confirmed', 'Confirmé'),
+        ('cancelled', 'Annulé'),
+        ('completed', 'Terminé'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.patient} - {self.doctor} - {self.date}"
+        return f"RDV: {self.patient} avec Dr. {self.doctor} le {self.date}"

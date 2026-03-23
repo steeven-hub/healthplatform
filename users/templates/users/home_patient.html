@@ -1,3 +1,66 @@
-<h2>Bienvenue {{ user.username }} (Patient)</h2>
-<p>Voici votre tableau de bord.</p>
-<a href="{% url 'logout' %}">Déconnexion</a>
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Tableau de bord Patient</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Rendez-vous -->
+    <div class="bg-white p-4 rounded shadow">
+        <h2 class="font-semibold mb-2">Mes rendez-vous</h2>
+        {% if appointments %}
+            <ul class="list-disc pl-5">
+            {% for appt in appointments %}
+                <li>{{ appt.date }} - Dr. {{ appt.doctor.user.username }} - Statut : {{ appt.status }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucun rendez-vous prévu.</p>
+        {% endif %}
+        <a href="{% url 'book_appointment' %}" class="mt-2 inline-block bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-white">Prendre un rendez-vous</a>
+    </div>
+
+    <!-- Dossier médical -->
+    <div class="bg-white p-4 rounded shadow">
+        <h2 class="font-semibold mb-2">Mon dossier médical</h2>
+        {% if medical_records %}
+            <ul class="list-disc pl-5">
+            {% for record in medical_records %}
+                <li>{{ record.date_created }} - {{ record.title }} - <a href="{{ record.document.url }}" class="text-blue-500">Télécharger</a></li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Pas de documents médicaux disponibles.</p>
+        {% endif %}
+    </div>
+
+    <!-- Messages -->
+    <div class="bg-white p-4 rounded shadow md:col-span-2">
+        <h2 class="font-semibold mb-2">Messages</h2>
+        {% if messages %}
+            <ul class="list-disc pl-5">
+            {% for msg in messages %}
+                <li>{{ msg.sender.username }} → {{ msg.receiver.username }} : {{ msg.content }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucun message.</p>
+        {% endif %}
+    </div>
+
+    <!-- Notifications -->
+    <div class="bg-white p-4 rounded shadow md:col-span-2">
+        <h2 class="font-semibold mb-2">Notifications</h2>
+        {% if notifications %}
+            <ul class="list-disc pl-5">
+            {% for note in notifications %}
+                <li>{{ note.created_at }} - {{ note.content }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucune notification.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

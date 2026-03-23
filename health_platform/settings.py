@@ -1,21 +1,17 @@
 import os
 from pathlib import Path
 
-# 🔹 Base Directory
+# --- CHEMINS DE BASE ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 🔹 Secret Key (change pour la prod !)
+# --- SÉCURITÉ ---
 SECRET_KEY = 'django-insecure-your-secret-key'
-
-# 🔹 Debug
 DEBUG = True
+ALLOWED_HOSTS = ['*']
 
-# 🔹 Hosts autorisés
-ALLOWED_HOSTS = ['*']  # En prod, mettre le domaine ou IP spécifique
-
-# 🔹 Applications installées
+# --- APPLICATIONS (ORDRE CRITIQUE POUR LES WEBSOCKETS) ---
 INSTALLED_APPS = [
-    # Django par défaut
+    'daphne',  # 👈 Indispensable en premier pour Channels/WebSockets
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -23,11 +19,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # 🔹 Apps tierces
+    # Third-party apps
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
+    'channels', # 👈 Moteur de communication temps réel
 
-    # 🔹 Vos apps (ordre important : users en premier)
+    # Local apps (AfriHealth)
     'users',
     'patients',
     'doctors',
@@ -39,9 +37,9 @@ INSTALLED_APPS = [
     'api',
 ]
 
-# 🔹 Middleware
+# --- MIDDLEWARE ---
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Pour autoriser le cross-origin
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,13 +49,21 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# 🔹 CORS (optionnel pour API)
-CORS_ALLOW_ALL_ORIGINS = True
-
-# 🔹 URL configuration
 ROOT_URLCONF = 'health_platform.urls'
 
-# 🔹 Templates
+# --- CONFIGURATION SERVEUR (ASGI POUR LE CHAT) ---
+WSGI_APPLICATION = 'health_platform.wsgi.application'
+ASGI_APPLICATION = 'health_platform.asgi.application' # 👈 Redirige vers ton fichier asgi.py
+
+# --- COUCHE DE COMMUNICATION (CHANNEL LAYERS) ---
+# Utilisation de la mémoire vive pour le développement sur Windows
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+
+# --- TEMPLATES ---
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -74,61 +80,44 @@ TEMPLATES = [
     },
 ]
 
-# 🔹 WSGI / ASGI
-WSGI_APPLICATION = 'health_platform.wsgi.application'
-ASGI_APPLICATION = 'health_platform.asgi.application'
-
-# 🔹 Base utilisateur personnalisé
+# --- MODÈLE UTILISATEUR PERSONNALISÉ ---
 AUTH_USER_MODEL = 'users.User'
 
-# 🔹 Database (PostgreSQL)
+# --- BASE DE DONNÉES (POSTGRESQL) ---
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'health_platform',
         'USER': 'postgres',
-        'PASSWORD': 'root',       # Ton mot de passe
+        'PASSWORD': 'root', 
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
 
-# 🔹 Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# 🔹 Internationalisation
+# --- INTERNATIONALISATION ---
 LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE = 'Africa/Porto-Novo'
 USE_I18N = True
 USE_TZ = True
 
-# 🔹 Fichiers statiques
+# --- FICHIERS STATIQUES ET MÉDIAS ---
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# 🔹 Fichiers médias (uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# 🔹 DRF Configuration
+# --- CORS (POUR LE FRONTEND ANGULAR) ---
+CORS_ALLOW_ALL_ORIGINS = True 
+
+# --- DJANGO REST FRAMEWORK ---
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -137,8 +126,4 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-# 🔹 Email backend (console pour dev)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# 🔹 Default auto field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
