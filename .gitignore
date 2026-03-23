@@ -1,0 +1,27 @@
+# Python / Django
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+.pytest_cache/
+
+# Environnement virtuel
+venv/
+env/
+ENV/
+
+# Variables d'environnement (TRÈS IMPORTANT pour la sécurité)
+.env
+
+# Media et statiques (fichiers uploadés par les utilisateurs)
+/media/
+/static/
+
+# IDE / Éditeurs
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
