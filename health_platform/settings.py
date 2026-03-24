@@ -5,13 +5,13 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SÉCURITÉ ---
-SECRET_KEY = 'django-insecure-your-secret-key'
+SECRET_KEY = 'django-insecure-votre-cle-reelle-ici' # À changer en production
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
-# --- APPLICATIONS (ORDRE CRITIQUE POUR LES WEBSOCKETS) ---
+# --- APPLICATIONS (ORDRE CRITIQUE) ---
 INSTALLED_APPS = [
-    'daphne',  # 👈 Indispensable en premier pour Channels/WebSockets
+    'daphne',  # Doit être AVANT 'django.contrib.staticfiles'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'channels', # 👈 Moteur de communication temps réel
+    'channels', 
 
     # Local apps (AfriHealth)
     'users',
@@ -39,10 +39,10 @@ INSTALLED_APPS = [
 
 # --- MIDDLEWARE ---
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # Toujours en premier
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.common.CommonMiddleware', # Important après CorsMiddleware
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -53,10 +53,10 @@ ROOT_URLCONF = 'health_platform.urls'
 
 # --- CONFIGURATION SERVEUR (ASGI POUR LE CHAT) ---
 WSGI_APPLICATION = 'health_platform.wsgi.application'
-ASGI_APPLICATION = 'health_platform.asgi.application' # 👈 Redirige vers ton fichier asgi.py
+ASGI_APPLICATION = 'health_platform.asgi.application'
 
 # --- COUCHE DE COMMUNICATION (CHANNEL LAYERS) ---
-# Utilisation de la mémoire vive pour le développement sur Windows
+# InMemory est parfait pour tes tests sous Windows 10
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -110,13 +110,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # --- CORS (POUR LE FRONTEND ANGULAR) ---
-CORS_ALLOW_ALL_ORIGINS = True 
+CORS_ALLOW_ALL_ORIGINS = True # Pratique en dev, à restreindre en prod
+CORS_ALLOW_CREDENTIALS = True
 
 # --- DJANGO REST FRAMEWORK ---
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [

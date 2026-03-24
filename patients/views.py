@@ -4,5 +4,5 @@ from .serializers import PatientSerializer
 
 
 class PatientViewSet(viewsets.ModelViewSet):
-    queryset = Patient.objects.all()
-    serializer_class = PatientSerializer
+    queryset = Patient.objects.all()
+    serializer_class = PatientSerializer
