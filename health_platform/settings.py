@@ -138,8 +138,8 @@ REST_FRAMEWORK = {
 }
 
 # --- CLÉ API GEMINI ---
-# Commente l'ancienne ligne et mets la clé directement
-# API_KEY = os.environ.get("API_KEY") 
-API_KEY = "AIzaSyC84svbLd5s6KQbQ38gLGy10yce5g3mdVY"
+# ATTENTION : Ne jamais commiter de clé API en dur.
+# Utilisez une variable d'environnement.
+API_KEY = os.environ.get("GEMINI_API_KEY")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
