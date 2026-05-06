@@ -11,12 +11,13 @@ venv/
 env/
 ENV/
 
-# Variables d'environnement (TRÈS IMPORTANT pour la sécurité)
+# Variables d'environnement
 .env
 
-# Media et statiques (fichiers uploadés par les utilisateurs)
+# Media et statiques générés
 /media/
 /static/
+/staticfiles/
 
 # IDE / Éditeurs
 .vscode/
@@ -25,3 +26,13 @@ ENV/
 
 # Logs
 *.log
+
+# Node / Frontend
+node_modules/
+dist/
+.angular/
+coverage/
+
+# OS
+.DS_Store
+Thumbs.db
