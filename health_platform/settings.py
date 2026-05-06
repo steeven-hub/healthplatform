@@ -42,8 +42,8 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', # Toujours en premier
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware', # Important après CorsMiddleware
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.common.CommonMiddleware', 
+    'django.middleware.csrf.CsrfViewMiddleware', # Essentiel pour la sécurité des formulaires
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -56,7 +56,6 @@ WSGI_APPLICATION = 'health_platform.wsgi.application'
 ASGI_APPLICATION = 'health_platform.asgi.application'
 
 # --- COUCHE DE COMMUNICATION (CHANNEL LAYERS) ---
-# InMemory est parfait pour tes tests sous Windows 10
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -67,7 +66,10 @@ CHANNEL_LAYERS = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',
+            BASE_DIR / 'api' / 'templates', # Ajouté pour trouver tes fichiers dans api/templates
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -95,6 +97,15 @@ DATABASES = {
     }
 }
 
+# --- GESTION DE L'AUTHENTIFICATION ET REDIRECTION ---
+LOGIN_URL = '/api/login/'            
+LOGIN_REDIRECT_URL = '/api/home/'    
+LOGOUT_REDIRECT_URL = '/api/login/'  
+
+# --- CONFIGURATION CSRF (POUR ÉVITER L'ERREUR 403) ---
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000', 'http://localhost:5173']
+CSRF_COOKIE_HTTPONLY = False  # Permet la lecture si nécessaire par JS
+
 # --- INTERNATIONALISATION ---
 LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE = 'Africa/Porto-Novo'
@@ -109,8 +120,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# --- CORS (POUR LE FRONTEND ANGULAR) ---
-CORS_ALLOW_ALL_ORIGINS = True # Pratique en dev, à restreindre en prod
+# --- CORS (POUR LE FRONTEND ANGULAR / REACT) ---
+CORS_ALLOW_ALL_ORIGINS = True 
 CORS_ALLOW_CREDENTIALS = True
 
 # --- DJANGO REST FRAMEWORK ---
@@ -125,5 +136,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
+
+# --- CLÉ API GEMINI ---
+# Commente l'ancienne ligne et mets la clé directement
+# API_KEY = os.environ.get("API_KEY") 
+API_KEY = "AIzaSyC84svbLd5s6KQbQ38gLGy10yce5g3mdVY"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

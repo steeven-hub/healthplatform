@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-4">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h2 class="text-xl font-bold text-gray-800 flex items-center">
+            <span class="mr-2">🤖</span> Assistant IA AfriHealth
+        </h2>
+        <p class="text-gray-500 text-sm">Posez vos questions de santé à notre IA spécialisée.</p>
+    </div>
+
+    <div id="chat-window" class="bg-gray-50 p-4 rounded-xl h-96 overflow-y-auto border border-gray-200 flex flex-col space-y-4">
+        <div class="bg-blue-100 p-3 rounded-lg self-start max-w-xs text-blue-800">
+            Bonjour ! Je suis l'IA AfriHealth. Comment puis-je vous aider aujourd'hui ?
+        </div>
+    </div>
+
+    <div class="flex space-x-2">
+        <input type="text" id="user-input" class="flex-1 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Décrivez vos symptômes ou posez une question...">
+        <button onclick="sendMessage()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">Envoyer</button>
+    </div>
+</div>
+
+<script>
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const chatWindow = document.getElementById('chat-window');
+    const message = input.value;
+    if (!message) return;
+
+    // Afficher message utilisateur
+    chatWindow.innerHTML += `<div class="bg-white p-3 rounded-lg self-end max-w-xs shadow-sm border border-gray-100">${message}</div>`;
+    input.value = '';
+
+    // Appel API
+    const response = await fetch('/api/ai-assistant/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ message: message })
+    });
+
+    const data = await response.json();
+    
+    // Afficher réponse IA
+    chatWindow.innerHTML += `<div class="bg-blue-100 p-3 rounded-lg self-start max-w-xs text-blue-800">${data.reply}</div>`;
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Tableau de bord AfriHealth</h1>
+            <p class="text-gray-500">Ravi de vous revoir, {% if is_doctor %}Dr.{% endif %} {{ user.last_name }}</p>
+        </div>
+        <div class="{% if is_doctor %}bg-blue-100 text-blue-600{% else %}bg-green-100 text-green-600{% endif %} px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider">
+            {% if is_doctor %}Mode Médecin{% else %}Mode Patient{% endif %}
+        </div>
+    </div>
+
+    {% if is_doctor %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+            <div class="text-sm font-bold text-gray-400 uppercase">Total Patients</div>
+            <div class="text-3xl font-black text-gray-800">{{ total_patients }}</div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+            <div class="text-sm font-bold text-gray-400 uppercase">Rendez-vous à venir</div>
+            <div class="text-3xl font-black text-gray-800">{{ total_appointments }}</div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+            <div class="text-sm font-bold text-gray-400 uppercase">Consultations du jour</div>
+            <div class="text-3xl font-black text-gray-800">0</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="{% url 'patients_list' %}" class="bg-white p-4 rounded-lg shadow-sm hover:bg-gray-50 border border-gray-100 transition text-center">
+            <div class="text-2xl mb-2">👥</div>
+            <div class="font-bold text-gray-700">Mes Patients</div>
+        </a>
+        <a href="#" class="bg-white p-4 rounded-lg shadow-sm hover:bg-gray-50 border border-gray-100 transition text-center">
+            <div class="text-2xl mb-2">📅</div>
+            <div class="font-bold text-gray-700">Agenda</div>
+        </a>
+        <a href="#" class="bg-white p-4 rounded-lg shadow-sm hover:bg-gray-50 border border-gray-100 transition text-center">
+            <div class="text-2xl mb-2">📝</div>
+            <div class="font-bold text-gray-700">Rapports IA</div>
+        </a>
+        <a href="{% url 'ai_assistant' %}" class="bg-blue-600 p-4 rounded-lg shadow-sm hover:bg-blue-700 transition text-center text-white">
+            <div class="text-2xl mb-2">🤖</div>
+            <div class="font-bold">Assistant IA</div>
+        </a>
+    </div>
+
+    {% else %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-8 rounded-xl shadow-sm text-center border border-gray-100">
+            <div class="text-4xl mb-4">🩺</div>
+            <h3 class="text-xl font-bold mb-2">Prendre un rendez-vous</h3>
+            <p class="text-gray-500 mb-6">Trouvez un spécialiste parmi nos docteurs et réservez votre consultation.</p>
+            <a href="{% url 'doctors_list' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">Trouver un Docteur</a>
+        </div>
+
+        <div class="bg-white p-8 rounded-xl shadow-sm text-center border border-gray-100">
+            <div class="text-4xl mb-4">📂</div>
+            <h3 class="text-xl font-bold mb-2">Mon Dossier Médical</h3>
+            <p class="text-gray-500 mb-6">Consultez vos historiques de consultation et votre carnet de santé.</p>
+            <a href="/api/medicalrecords/" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-black transition">Voir mon carnet</a>
+        </div>
+    </div>
+
+    <div class="bg-purple-600 p-6 rounded-xl shadow-lg text-white flex flex-col md:flex-row items-center justify-between">
+        <div class="flex items-center space-x-4 mb-4 md:mb-0">
+            <div class="text-4xl">🤖</div>
+            <div>
+                <h3 class="text-xl font-bold">Besoin d'un conseil santé rapide ?</h3>
+                <p class="text-purple-100">L'IA AfriHealth est disponible 24h/24 pour répondre à vos questions.</p>
+            </div>
+        </div>
+        <a href="{% url 'ai_assistant' %}" class="bg-white text-purple-600 px-8 py-3 rounded-xl font-black shadow-md hover:bg-purple-50 transition">
+            Discuter avec l'IA
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

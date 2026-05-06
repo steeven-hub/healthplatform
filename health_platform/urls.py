@@ -4,19 +4,23 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    # Interface d'administration
     path('admin/', admin.site.urls),
     
-    # API globale (Centralise tes endpoints REST)
+    # API globale et Vues de l'application (Centralise tes endpoints REST, Login, Register, IA)
+    # C'est ici que se trouvent /api/login/, /api/register/, /api/home/, etc.
     path('api/', include('api.urls')), 
     
-    # URLs des applications spécifiques
+    # URLs des applications spécifiques (Si tu as des routes dédiées à l'intérieur de ces dossiers)
     path('users/', include('users.urls')),
     path('appointments/', include('appointments.urls')),
     path('chat/', include('chat.urls')),
     
-    # On peut aussi ajouter les autres si tu as des vues spécifiques
+    # Tu peux décommenter au fur et à mesure si tu ajoutes des fichiers urls.py dans ces dossiers
     # path('patients/', include('patients.urls')),
     # path('doctors/', include('doctors.urls')),
+    # path('consultations/', include('consultations.urls')),
+    # path('medicalrecords/', include('medicalrecords.urls')),
 ]
 
 # INDISPENSABLE : Permet de consulter les fichiers (PDF, Images) en développement

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold text-gray-800">Liste des Patients</h2>
+        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
+            {{ patients|length }} Patient(s)
+        </span>
+    </div>
+
+    <div class="bg-white shadow-sm border border-gray-100 rounded-xl overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-100">
+                <tr>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-400 uppercase">Nom & Prénom</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-400 uppercase">Téléphone</th>
+                    <th class="px-6 py-4 text-sm font-bold text-gray-400 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for patient in patients %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-medium text-gray-800">
+                        {{ patient.user.first_name }} {{ patient.user.last_name }}
+                    </td>
+                    <td class="px-6 py-4 text-gray-600">{{ patient.phone }}</td>
+                    <td class="px-6 py-4">
+                        <a href="#" class="text-blue-600 hover:underline font-bold">Voir dossier</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-8 text-center text-gray-400 italic">
+                        Aucun patient enregistré pour le moment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
