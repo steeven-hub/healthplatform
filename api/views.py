@@ -12,10 +12,18 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.response import Response
 
-from .models import Patient, Doctor, Appointment, Consultation, MedicalRecord, ChatSession, ChatMessage, ApiRecord, DoctorAvailability, Notification
+from patients.models import Patient
+from doctors.models import Doctor, DoctorAvailability
+from appointments.models import Appointment
+from consultations.models import Consultation
+from medicalrecords.models import MedicalRecord
+from chat.models import ChatSession, ChatMessage
+from notifications.models import Notification
+from .models import ApiRecord
 from .serializers import *
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -55,13 +63,11 @@ def dashboard_stats_api(request):
         today = timezone.now().date()
         user = request.user
         
-        # Sécurité : vérifier les profils via getattr pour éviter les AttributeError
         doctor = getattr(user, 'api_doctor', None)
         patient = getattr(user, 'api_patient', None)
         
         if doctor:
             total_patients = Patient.objects.count()
-            # Utiliser une plage de dates au lieu de __date pour plus de robustesse sur SQLite
             start_of_day = timezone.make_aware(timezone.datetime.combine(today, timezone.datetime.min.time()))
             end_of_day = timezone.make_aware(timezone.datetime.combine(today, timezone.datetime.max.time()))
             
@@ -94,8 +100,9 @@ def dashboard_stats_api(request):
             })
             
         elif patient:
-            # RDV à venir
             my_appointments = Appointment.objects.filter(patient=patient, date__gte=timezone.now()).order_by('date')
+            my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')[:5]
+            
             appts_data = []
             for a in my_appointments:
                 try:
@@ -109,13 +116,25 @@ def dashboard_stats_api(request):
                     })
                 except: continue
 
+            records_data = []
+            for r in my_records:
+                records_data.append({
+                    'id': r.id,
+                    'diagnosis': r.diagnosis,
+                    'prescription': r.prescription.split('\n') if r.prescription else [],
+                    'doctor': str(r.doctor),
+                    'date': r.date_created.strftime('%d/%m/%Y')
+                })
+
             return Response({
                 'role': 'patient',
                 'stats': [
                     {'label': "Mes RDV", 'value': str(my_appointments.count()), 'icon': 'Calendar', 'color': 'primary'},
                     {'label': "Mon Groupe", 'value': getattr(patient, 'blood_group', 'N/A') or "N/A", 'icon': 'Activity', 'color': 'secondary'},
+                    {'label': "Documents", 'value': str(MedicalRecord.objects.filter(patient=patient).count()), 'icon': 'FileText', 'color': 'chart-3'},
                 ],
-                'my_appointments': appts_data
+                'my_appointments': appts_data,
+                'my_records': records_data
             })
             
         else:
@@ -135,26 +154,54 @@ def dashboard_stats_api(request):
 def patient_detail_api(request, patient_id):
     user = request.user
     if patient_id == 'my-profile':
-        if not hasattr(user, 'api_patient'): 
-            # Auto-réparation: Création du profil si c'est un patient
-            if user.role == 'patient' or not hasattr(user, 'api_doctor'):
-                patient = Patient.objects.create(user=user)
-            else:
-                return Response({'error': 'Ce compte n\'est pas lié à un profil patient.'}, status=403)
-        else:
+        if hasattr(user, 'api_doctor'):
+            doc = user.api_doctor
+            return Response({
+                'id': doc.id,
+                'role': 'doctor',
+                'specialty': doc.specialty,
+                'license_number': doc.license_number,
+                'phone': doc.phone
+            })
+        elif hasattr(user, 'api_patient'):
             patient = user.api_patient
+        elif user.role == 'patient':
+            patient = Patient.objects.create(user=user)
+        else:
+            return Response({'error': 'Compte sans profil.'}, status=404)
+        
+        # Suite pour les patients
+        records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
+        return Response({
+            'id': f"P-{patient.id}",
+            'name': f"{patient.user.first_name} {patient.user.last_name}",
+            'bloodGroup': getattr(patient, 'blood_group', 'N/A') or 'N/A',
+            'phone': getattr(patient, 'phone', 'N/A') or 'N/A',
+            'age': 45, 'gender': 'M', 'address': 'Abidjan',
+            'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
+            'allergies': [], 'chronicConditions': [],
+            'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else [], 'vitals': {'bp':'N/A','hr':'N/A','temp':'N/A','weight':'N/A'}} for r in records],
+            'consultations': []
+        })
     else:
         patient = get_object_or_404(Patient, id=str(patient_id).replace('P-', ''))
-        # Permission: Médecin, Superuser, ou le Patient lui-même
-        is_authorized = (
-            user.is_superuser or 
-            hasattr(user, 'api_doctor') or 
-            (hasattr(user, 'api_patient') and user.api_patient.id == patient.id)
-        )
+        
+        # Vérification robuste des permissions
+        is_doctor_profile = Doctor.objects.filter(user=user).exists()
+        is_patient_profile = Patient.objects.filter(user=user).exists()
+        
+        is_doctor = (user.role == 'doctor' or is_doctor_profile)
+        
+        patient_obj_for_user = Patient.objects.filter(user=user).first()
+        is_patient_owner = (patient_obj_for_user and patient_obj_for_user.id == patient.id)
+        
+        is_authorized = user.is_superuser or is_doctor or is_patient_owner
+        
         if not is_authorized:
-            return Response({'error': 'Accès interdit'}, status=403)
+            detail = f"User: {user.username}, Role: {user.role}, Is Dr: {is_doctor_profile}, Is Pat: {is_patient_profile}"
+            return Response({'error': 'Accès interdit', 'debug': detail}, status=403)
     
-    records = MedicalRecord.objects.filter(patient=patient).order_by('-created_at')
+    records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
     return Response({
         'id': f"P-{patient.id}",
         'name': f"{patient.user.first_name} {patient.user.last_name}",
@@ -163,7 +210,7 @@ def patient_detail_api(request, patient_id):
         'age': 45, 'gender': 'M', 'address': 'Abidjan',
         'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
         'allergies': [], 'chronicConditions': [],
-        'history': [{'date': r.created_at.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else [], 'vitals': {'bp':'N/A','hr':'N/A','temp':'N/A','weight':'N/A'}} for r in records],
+        'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else [], 'vitals': {'bp':'N/A','hr':'N/A','temp':'N/A','weight':'N/A'}} for r in records],
         'consultations': []
     })
 
@@ -195,19 +242,17 @@ def availability_api(request):
 def list_doctors_api(request):
     doctors = Doctor.objects.all()
     return Response([{'id': d.id, 'name': str(d), 'specialty': d.specialty, 'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={d.user.username}"} for d in doctors])
+
 @api_view(['POST', 'GET'])
 @permission_classes([permissions.IsAuthenticated])
 def book_appointment_api(request):
-    """ Patient réserve un créneau ou consulte ses RDV """
     user = request.user
     if not hasattr(user, 'api_patient'):
-        # Création auto si besoin
         patient = Patient.objects.create(user=user)
     else:
         patient = user.api_patient
 
     if request.method == 'GET':
-        # Lister les rendez-vous du patient
         appts = Appointment.objects.filter(patient=patient).order_by('-date')
         return Response([{
             'id': a.id,
@@ -219,16 +264,14 @@ def book_appointment_api(request):
             'status_label': a.get_status_display()
         } for a in appts])
 
-    # POST: Réservation
     data = request.data
     availability_id = data.get('availability_id')
     avail = get_object_or_404(DoctorAvailability, id=availability_id, is_booked=False)
 
-    # Créer le RDV (par défaut en attente 'pending')
     appointment = Appointment.objects.create(
         patient=patient,
         doctor=avail.doctor,
-        date=timezone.now(), # Idéalement utiliser la date de la disponibilité
+        date=timezone.now(), 
         reason=data.get('reason', 'Consultation réservée en ligne'),
         status='pending'
     )
@@ -236,17 +279,22 @@ def book_appointment_api(request):
     avail.is_booked = True
     avail.save()
 
+    # Notification pour le Médecin
+    Notification.objects.create(
+        user=avail.doctor.user,
+        title="Nouveau Rendez-vous",
+        message=f"Le patient {patient} a réservé un créneau pour : {appointment.reason}."
+    )
+
     return Response({
         'message': 'Rendez-vous réservé avec succès !',
         'appointment_id': appointment.id,
         'status': appointment.status
     }, status=201)
 
-
 @api_view(['PATCH'])
 @permission_classes([permissions.IsAuthenticated])
 def update_appointment_status_api(request, appointment_id):
-    """ Médecin confirme ou annule un RDV """
     if not hasattr(request.user, 'api_doctor'):
         return Response({'error': 'Seul le médecin peut changer le statut'}, status=403)
     
@@ -259,7 +307,6 @@ def update_appointment_status_api(request, appointment_id):
     appointment.status = new_status
     appointment.save()
 
-    # Création d'une notification pour le patient
     status_label = appointment.get_status_display()
     Notification.objects.create(
         user=appointment.patient.user,
@@ -276,7 +323,6 @@ def update_appointment_status_api(request, appointment_id):
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
 def notifications_api(request):
-    """ Gère les notifications de l'utilisateur """
     if request.method == 'GET':
         notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:20]
         return Response([{
@@ -287,19 +333,17 @@ def notifications_api(request):
             'created_at': n.created_at
         } for n in notifs])
     
-    # POST: Marquer tout comme lu
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return Response(status=204)
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def generate_medical_report(request):
-    """ Génère un compte-rendu ou une ordonnance via l'IA """
     if not hasattr(request.user, 'api_doctor'):
         return Response({'error': 'Accès réservé aux médecins'}, status=403)
     
     diagnosis = request.data.get('diagnosis')
-    report_type = request.data.get('type', 'report') # 'report' or 'prescription'
+    report_type = request.data.get('type', 'report')
     
     if not diagnosis:
         return Response({'error': 'Le diagnostic est requis'}, status=400)
@@ -324,17 +368,11 @@ def generate_medical_report(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def admissions_list_api(request):
-    """ Liste des admissions et RDV pour le médecin """
     if not hasattr(request.user, 'api_doctor'): 
         return Response({'error': 'Accès réservé aux médecins'}, status=403)
     
     doctor = request.user.api_doctor
-    today = timezone.now().date()
-    
-    # Filtrer par statut si demandé
     status_filter = request.query_params.get('status', 'all')
-    
-    # Récupérer tous les RDV de ce médecin
     query = Appointment.objects.filter(doctor=doctor).order_by('date')
     
     if status_filter != 'all':
@@ -364,23 +402,19 @@ def create_admission_api(request):
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
 def chat_sessions_list_api(request):
-    """ Liste ou crée des sessions de chat pour le patient """
     user = request.user
     is_doctor = hasattr(user, 'api_doctor')
     
-    # Déterminer le patient cible
     patient = None
     if not is_doctor:
         patient = getattr(user, 'api_patient', None)
         if not patient:
             patient = Patient.objects.create(user=user)
     else:
-        # Pour un docteur, on cherche un patient_id ou on utilise son propre profil patient virtuel
         p_id = request.query_params.get('patient_id') or request.data.get('patient_id')
         if p_id:
             patient = get_object_or_404(Patient, id=str(p_id).replace('P-', ''))
         else:
-            # Fallback: le docteur voit ses propres conversations (sessions liées à lui-même en tant que patient)
             patient, _ = Patient.objects.get_or_create(user=user)
 
     if request.method == 'GET':
@@ -396,7 +430,6 @@ def chat_sessions_list_api(request):
         title = request.data.get('title', 'Nouvelle conversation')
         session = ChatSession.objects.create(patient=patient, title=title)
         
-        # Premier message de l'IA
         user_name = f"{user.first_name} {user.last_name}".strip() or user.username
         role_label = "Docteur" if is_doctor else "Patient"
         welcome_text = f"Bonjour {role_label} {user_name}, je suis votre assistant IA. Comment puis-je vous aider dans cette nouvelle conversation ?"
@@ -411,16 +444,12 @@ def chat_sessions_list_api(request):
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
 def ai_assistant_view(request):
-    """ Chatbot intelligent avec auto-réparation des profils et gestion de session """
-    
     user = request.user
     user_name = f"{user.first_name} {user.last_name}".strip() or user.username
     
-    # 1. Identifier et réparer le profil si nécessaire
     doctor_profile = getattr(user, 'api_doctor', None)
     patient_profile = getattr(user, 'api_patient', None)
     
-    # Si le profil est manquant mais que le rôle est défini, on le crée
     if not doctor_profile and not patient_profile:
         if user.role == 'doctor' or user.is_staff:
             doctor_profile = Doctor.objects.create(user=user)
@@ -430,29 +459,23 @@ def ai_assistant_view(request):
     is_doctor = doctor_profile is not None
     role_label = "Docteur" if is_doctor else "Patient"
 
-    # 2. Déterminer la session
     session_id = request.query_params.get('session_id') or (request.data.get('session_id') if request.method == 'POST' else None)
     
     if session_id:
         session = get_object_or_404(ChatSession, id=session_id)
-        # Vérification simple
         if not is_doctor and (patient_profile and session.patient != patient_profile):
             return Response({'error': 'Accès interdit'}, status=403)
         patient = session.patient
     else:
-        # Recherche du patient pour la session
         if not is_doctor:
             patient = patient_profile
         else:
-            # Pour un docteur, on cherche un patient_id ou on utilise un profil "Médecin-Patient" virtuel
             p_id = request.query_params.get('patient_id') or (request.data.get('patient_id') if request.method == 'POST' else None)
             if p_id:
                 patient = get_object_or_404(Patient, id=str(p_id).replace('P-', ''))
             else:
-                # Si le docteur veut juste parler à l'IA, on lui crée un profil patient "virtuel" lié
                 patient, _ = Patient.objects.get_or_create(user=user)
 
-        # Session la plus récente
         session = ChatSession.objects.filter(patient=patient).order_by('-started_at').first()
         if not session:
             session = ChatSession.objects.create(patient=patient, title="Discussion avec l'IA")
@@ -473,14 +496,12 @@ def ai_assistant_view(request):
     if not msg_content:
         return Response({'error': 'Message vide'}, status=400)
 
-    # Sauvegarde
     ChatMessage.objects.create(session=session, sender='patient', content=msg_content)
 
     if session.title in ["Discussion avec Wilson", "Discussion avec l'IA", "Discussion initiale"]:
         session.title = msg_content[:40] + ("..." if len(msg_content) > 40 else "")
         session.save()
 
-    # 3. IA (Appel API Gemini 3 Flash Preview)
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={settings.API_KEY}"
     context = f"Tu es l'assistant intelligent de la plateforme AfriHealth. Tu parles à {role_label} {user_name}."
     history_objs = session.messages.all().order_by('-timestamp')[:10][::-1]
@@ -496,17 +517,13 @@ def ai_assistant_view(request):
         response = requests.post(url, json=payload, timeout=15, verify=False)
         res = response.json()
         
-        # Log détaillé en cas d'absence de candidats
         if 'candidates' in res and len(res['candidates']) > 0:
             reply = res['candidates'][0]['content']['parts'][0]['text']
         else:
-            # Analyse de l'erreur renvoyée par Google
             error_msg = res.get('error', {}).get('message', 'Pas de message d\'erreur')
             block_reason = ""
             if 'promptFeedback' in res:
                 block_reason = f" (Bloqué par sécurité: {res['promptFeedback'].get('blockReason', 'inconnu')})"
-            
-            print(f"DEBUG IA ERROR: {res}")
             reply = f"Désolé, l'assistant IA rencontre une difficulté : {error_msg}{block_reason}"
             
         ChatMessage.objects.create(session=session, sender='assistant', content=reply)
@@ -514,82 +531,23 @@ def ai_assistant_view(request):
     except Exception as e:
         return Response({'reply': f"L'assistant IA est indisponible (Erreur réseau/serveur) : {str(e)}"}, status=500)
 
-@api_view(['GET', 'POST'])
-@permission_classes([permissions.IsAuthenticated])
-def notifications_api(request):
-    """ Gère les notifications de l'utilisateur """
-    if request.method == 'GET':
-        notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:20]
-        return Response([{
-            'id': n.id,
-            'title': n.title,
-            'message': n.message,
-            'is_read': n.is_read,
-            'created_at': n.created_at
-        } for n in notifs])
-    
-    # POST: Marquer tout comme lu
-    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-    return Response(status=204)
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def generate_medical_report(request):
-    """ Génère un compte-rendu ou une ordonnance via l'IA """
-    if not hasattr(request.user, 'api_doctor'):
-        return Response({'error': 'Accès réservé aux médecins'}, status=403)
-    
-    diagnosis = request.data.get('diagnosis')
-    report_type = request.data.get('type', 'report') # 'report' or 'prescription'
-    
-    if not diagnosis:
-        return Response({'error': 'Le diagnostic est requis'}, status=400)
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={settings.API_KEY}"
-    
-    prompt = f"Tu es un assistant médical pour AfriHealth. "
-    if report_type == 'prescription':
-        prompt += f"Génère une ordonnance professionnelle structurée pour le diagnostic suivant : {diagnosis}. Inclut le dosage et la durée."
-    else:
-        prompt += f"Génère un compte-rendu médical détaillé et professionnel pour le diagnostic suivant : {diagnosis}."
-    
-    prompt += "\nFormatte la réponse proprement en texte clair avec des sauts de ligne. Sois précis et professionnel."
-
-    try:
-        res = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15, verify=False).json()
-        content = res['candidates'][0]['content']['parts'][0]['text'] if 'candidates' in res else "Erreur génération IA."
-        return Response({'content': content})
-    except Exception as e:
-        return Response({'error': str(e)}, status=500)
-
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def generate_medical_report_old(request):
-    return Response({'report': "Rapport généré"})
-
 @api_view(['DELETE'])
 @permission_classes([permissions.IsAuthenticated])
 def delete_chat_session_api(request, session_id):
-    """ Permet de supprimer une session de chat """
     session = get_object_or_404(ChatSession, id=session_id)
-    
     is_doctor = hasattr(request.user, 'api_doctor')
     if not is_doctor and request.user.api_patient != session.patient:
         return Response({'error': 'Accès interdit'}, status=403)
-        
     session.delete()
     return Response({'message': 'Session supprimée'}, status=204)
-
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def token_login_api(request):
-    """ Authentification avec support du mode Démo """
     username = request.data.get('username')
     password = request.data.get('password')
     role = request.data.get('role')
 
-    # Mode Démo: On cherche un utilisateur existant avec ce rôle
     if role and not username:
         demo_user = User.objects.filter(role=role).first()
         if demo_user:
@@ -631,8 +589,8 @@ def logout_user(request):
 
 @login_required(login_url='/api/login/')
 def dashboard_view(request):
-    is_doctor = hasattr(request.user, 'doctor') or hasattr(request.user, 'api_doctor')
-    is_patient = hasattr(request.user, 'patient') or hasattr(request.user, 'api_patient')
+    is_doctor = hasattr(request.user, 'api_doctor')
+    is_patient = hasattr(request.user, 'api_patient')
     context = {
         'is_doctor': is_doctor,
         'is_patient': is_patient,
@@ -643,7 +601,32 @@ def dashboard_view(request):
 
 @login_required(login_url='/api/login/')
 def patients_list_view(request):
-    if not (hasattr(request.user, 'doctor') or hasattr(request.user, 'api_doctor')):
+    if not hasattr(request.user, 'api_doctor'):
         messages.error(request, "Accès réservé au personnel médical.")
         return redirect('home')
     return render(request, 'api/patients_list.html', {'patients': Patient.objects.all()})
+
+
+@api_view(['PATCH'])
+@permission_classes([permissions.IsAuthenticated])
+def update_profile_api(request):
+    user = request.user
+    data = request.data
+    
+    # Mise à jour des infos User
+    user.first_name = data.get('first_name', user.first_name)
+    user.last_name = data.get('last_name', user.last_name)
+    user.save()
+    
+    # Mise à jour profil spécifique
+    if hasattr(user, 'api_doctor'):
+        profile = user.api_doctor
+        profile.phone = data.get('phone', profile.phone)
+        profile.specialty = data.get('specialty', profile.specialty)
+        profile.save()
+    elif hasattr(user, 'api_patient'):
+        profile = user.api_patient
+        profile.phone = data.get('phone', profile.phone)
+        profile.save()
+        
+    return Response({'message': 'Profil mis à jour avec succès'})

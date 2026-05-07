@@ -2,14 +2,14 @@ from django.contrib import admin
 from .models import ChatSession, ChatMessage
 
 class ChatSessionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created_at')  # seuls les champs existants
-    filter_horizontal = ('participants',)  # pour ManyToManyField
-    readonly_fields = ('created_at',)
+    list_display = ('id', 'title', 'created_at')
+    filter_horizontal = ('participants',)
+    readonly_fields = ('created_at', 'started_at')
 
 class ChatMessageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'session', 'sender', 'message', 'timestamp')
+    list_display = ('id', 'session', 'sender', 'sender_user', 'timestamp')
     list_filter = ('session', 'sender')
-    search_fields = ('sender__username', 'message')
+    search_fields = ('content',)
     readonly_fields = ('timestamp',)
 
 admin.site.register(ChatSession, ChatSessionAdmin)

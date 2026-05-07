@@ -1,11 +1,56 @@
 import { useEffect, useState } from "react";
-import { Users, AlertCircle, Calendar, Activity, TrendingUp, TrendingDown, Loader2, Clock, CheckCircle } from "lucide-react";
+import { Users, AlertCircle, Calendar, Activity, TrendingUp, TrendingDown, Loader2, Clock, CheckCircle, FileText, Download } from "lucide-react";
 import { Link } from "react-router";
 import api from "../api";
+import { jsPDF } from "jspdf";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export function Dashboard() {
+  const { t } = useTranslation();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const downloadPDF = (record: any) => {
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.setTextColor(33, 150, 243);
+    doc.text("AfriHealth Digital Platform", 105, 20, { align: 'center' });
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text("ORDONNANCE / COMPTE-RENDU", 105, 40, { align: 'center' });
+    
+    doc.setLineWidth(0.5);
+    doc.line(20, 45, 190, 45);
+
+    doc.setFontSize(12);
+    doc.text(`Date: ${record.date}`, 20, 60);
+    doc.text(`Médecin: ${record.doctor}`, 20, 67);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(33, 150, 243);
+    doc.text("Diagnostic:", 20, 85);
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(doc.splitTextToSize(record.diagnosis, 170), 20, 92);
+
+    if (record.prescription && record.prescription.length > 0) {
+        doc.setFontSize(14);
+        doc.setTextColor(33, 150, 243);
+        doc.text("Prescription:", 20, 120);
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.text(record.prescription.join('\n'), 20, 127);
+    }
+
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Document authentifié AfriHealth", 105, 280, { align: 'center' });
+    
+    doc.save(`document_medical_${record.date.replace(/\//g, '-')}.pdf`);
+    toast.success("Document téléchargé !");
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -42,8 +87,8 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2>{data?.role === 'doctor' ? 'Tableau de Bord Médical' : 'Espace Patient'}</h2>
-        <p className="text-muted-foreground">Bienvenue sur votre interface personnalisée</p>
+        <h2>{data?.role === 'doctor' ? t('dashboard_doctor') : t('dashboard_patient')}</h2>
+        <p className="text-muted-foreground">{t('welcome_message')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -107,7 +152,7 @@ export function Dashboard() {
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground text-sm">
-                  Aucune alerte urgente.
+                  {t('no_alerts')}
                 </div>
               )}
             </div>
@@ -115,8 +160,8 @@ export function Dashboard() {
 
           <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3>Patients du Jour</h3>
-              <span className="text-sm text-muted-foreground">{data?.today_patients?.length || 0} rendez-vous</span>
+              <h3>{t('patients_today')}</h3>
+              <span className="text-sm text-muted-foreground">{data?.today_patients?.length || 0} {t('appointments')}</span>
             </div>
             <div className="space-y-3">
               {data?.today_patients && data.today_patients.length > 0 ? (
@@ -147,49 +192,80 @@ export function Dashboard() {
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  Aucun rendez-vous prévu aujourd'hui.
+                  {t('no_appointments_today')}
                 </div>
               )}
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="mb-6 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            Mes Prochains Rendez-vous
-          </h3>
-          <div className="space-y-4">
-            {data?.my_appointments && data.my_appointments.length > 0 ? (
-              data.my_appointments.map((appt: any) => (
-                <div key={appt.id} className="flex items-center justify-between p-4 border border-border rounded-xl bg-accent/20">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-primary" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h3 className="mb-6 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              {t('upcoming_appointments')}
+            </h3>
+            <div className="space-y-4">
+              {data?.my_appointments && data.my_appointments.length > 0 ? (
+                data.my_appointments.map((appt: any) => (
+                  <div key={appt.id} className="flex items-center justify-between p-4 border border-border rounded-xl bg-accent/20">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-bold">{appt.doctor_name}</p>
+                        <p className="text-sm text-muted-foreground">{appt.date} à {appt.time}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold">{appt.doctor_name}</p>
-                      <p className="text-sm text-muted-foreground">{appt.date} à {appt.time}</p>
+                    <div className="text-right">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                        appt.status === 'confirmed' ? 'bg-green-500/10 text-green-600' : 
+                        appt.status === 'pending' ? 'bg-orange-500/10 text-orange-600' :
+                        'bg-muted text-muted-foreground'
+                      }`}>
+                        {appt.status === 'confirmed' ? t('confirmed') : appt.status === 'pending' ? t('pending') : appt.status}
+                      </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                      appt.status === 'confirmed' ? 'bg-green-500/10 text-green-600' : 
-                      appt.status === 'pending' ? 'bg-orange-500/10 text-orange-600' :
-                      'bg-muted text-muted-foreground'
-                    }`}>
-                      {appt.status === 'confirmed' ? 'Confirmé' : appt.status === 'pending' ? 'En attente' : appt.status}
-                    </span>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-[150px] truncate">{appt.reason}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>{t('no_upcoming_appointments')}</p>
+                  <Link to="/app/book-appointment" className="text-primary hover:underline mt-2 inline-block">{t('book_first_appointment')}</Link>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <p>Vous n'avez pas de rendez-vous à venir.</p>
-                <Link to="/app/book-appointment" className="text-primary hover:underline mt-2 inline-block">Prendre mon premier rendez-vous</Link>
-              </div>
-            )}
+              )}
+            </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h3 className="mb-6 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-chart-3" />
+              Mes Derniers Documents
+            </h3>
+            <div className="space-y-3">
+              {data?.my_records && data.my_records.length > 0 ? (
+                data.my_records.map((record: any) => (
+                  <div key={record.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/10 transition-colors">
+                    <div className="flex-1">
+                      <p className="font-medium line-clamp-1">{record.diagnosis}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{record.date} • {record.doctor}</p>
+                    </div>
+                    <button 
+                      onClick={() => downloadPDF(record)}
+                      className="p-2 text-primary hover:bg-primary hover:text-white rounded-full transition-all border border-primary/20"
+                      title="Télécharger PDF"
+                    >
+                      <Download className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p>Aucun document disponible.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

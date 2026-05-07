@@ -1,0 +1,234 @@
+{
+  "fr": {
+    "translation": {
+      "dashboard": "Tableau de Bord",
+      "settings": "Paramètres",
+      "profile": "Profil",
+      "save": "Enregistrer",
+      "logout": "Déconnexion",
+      "language": "Langue",
+      "dashboard_doctor": "Tableau de Bord Médical",
+      "dashboard_patient": "Espace Patient",
+      "welcome_message": "Bienvenue sur votre interface personnalisée",
+      "recent_alerts": "Alertes Récentes",
+      "alerts": "alertes",
+      "no_alerts": "Aucune alerte urgente.",
+      "upcoming_appointments": "Mes Prochains Rendez-vous",
+      "recent_documents": "Mes Derniers Documents",
+      "patients_today": "Patients du Jour",
+      "appointments": "rendez-vous",
+      "no_appointments_today": "Aucun rendez-vous prévu aujourd'hui.",
+      "confirmed": "Confirmé",
+      "pending": "En attente",
+      "no_upcoming_appointments": "Aucun rendez-vous à venir.",
+      "book_first_appointment": "Prendre mon premier rendez-vous",
+      "changed": "changée"
+      }
+      },
+      "en": {
+      "translation": {
+      "dashboard": "Dashboard",
+      "settings": "Settings",
+      "profile": "Profile",
+      "save": "Save",
+      "logout": "Log Out",
+      "language": "Language",
+      "dashboard_doctor": "Medical Dashboard",
+      "dashboard_patient": "Patient Portal",
+      "welcome_message": "Welcome to your personalized interface",
+      "recent_alerts": "Recent Alerts",
+      "alerts": "alerts",
+      "no_alerts": "No urgent alerts.",
+      "upcoming_appointments": "Upcoming Appointments",
+      "recent_documents": "Recent Documents",
+      "patients_today": "Patients Today",
+      "appointments": "appointments",
+      "no_appointments_today": "No appointments scheduled today.",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "no_upcoming_appointments": "No upcoming appointments.",
+      "book_first_appointment": "Book my first appointment",
+      "changed": "changed"
+      }
+    },
+    "es": {
+    "translation": {
+      "dashboard": "Panel de control",
+      "settings": "Configuración",
+      "profile": "Perfil",
+      "save": "Guardar",
+      "logout": "Cerrar sesión",
+      "language": "Idioma"
+    }
+  },
+  "de": {
+    "translation": {
+      "dashboard": "Dashboard",
+      "settings": "Einstellungen",
+      "profile": "Profil",
+      "save": "Speichern",
+      "logout": "Abmelden",
+      "language": "Sprache"
+    }
+  },
+  "it": {
+    "translation": {
+      "dashboard": "Cruscotto",
+      "settings": "Impostazioni",
+      "profile": "Profilo",
+      "save": "Salva",
+      "logout": "Disconnetti",
+      "language": "Lingua"
+    }
+  },
+  "pt": {
+    "translation": {
+      "dashboard": "Painel",
+      "settings": "Configurações",
+      "profile": "Perfil",
+      "save": "Salvar",
+      "logout": "Sair",
+      "language": "Idioma"
+    }
+  },
+  "zh": {
+    "translation": {
+      "dashboard": "仪表板",
+      "settings": "设置",
+      "profile": "个人资料",
+      "save": "保存",
+      "logout": "退出登录",
+      "language": "语言"
+    }
+  },
+  "ar": {
+    "translation": {
+      "dashboard": "لوحة التحكم",
+      "settings": "الإعدادات",
+      "profile": "الملف الشخصي",
+      "save": "حفظ",
+      "logout": "تسجيل الخروج",
+      "language": "اللغة"
+    }
+  },
+  "ru": {
+    "translation": {
+      "dashboard": "Панель управления",
+      "settings": "Настройки",
+      "profile": "Профиль",
+      "save": "Сохранить",
+      "logout": "Выйти",
+      "language": "Язык"
+    }
+  },
+  "ja": {
+    "translation": {
+      "dashboard": "ダッシュボード",
+      "settings": "設定",
+      "profile": "プロフィール",
+      "save": "保存",
+      "logout": "ログアウト",
+      "language": "言語"
+    }
+  },
+  "ko": {
+    "translation": {
+      "dashboard": "대시보드",
+      "settings": "설정",
+      "profile": "프로필",
+      "save": "저장",
+      "logout": "로그아웃",
+      "language": "언어"
+    }
+  },
+  "hi": {
+    "translation": {
+      "dashboard": "डैशबोर्ड",
+      "settings": "सेटिंग्स",
+      "profile": "प्रोफ़ाइल",
+      "save": "सहेजें",
+      "logout": "लॉग आउट",
+      "language": "भाषा"
+    }
+  },
+  "tr": {
+    "translation": {
+      "dashboard": "Kontrol Paneli",
+      "settings": "Ayarlar",
+      "profile": "Profil",
+      "save": "Kaydet",
+      "logout": "Çıkış Yap",
+      "language": "Dil"
+    }
+  },
+  "nl": {
+    "translation": {
+      "dashboard": "Dashboard",
+      "settings": "Instellingen",
+      "profile": "Profiel",
+      "save": "Opslaan",
+      "logout": "Uitloggen",
+      "language": "Taal"
+    }
+  },
+  "pl": {
+    "translation": {
+      "dashboard": "Pulpit",
+      "settings": "Ustawienia",
+      "profile": "Profil",
+      "save": "Zapisz",
+      "logout": "Wyloguj",
+      "language": "Język"
+    }
+  },
+  "sv": {
+    "translation": {
+      "dashboard": "Instrumentpanel",
+      "settings": "Inställningar",
+      "profile": "Profil",
+      "save": "Spara",
+      "logout": "Logga ut",
+      "language": "Språk"
+    }
+  },
+  "da": {
+    "translation": {
+      "dashboard": "Betjeningspanel",
+      "settings": "Indstillinger",
+      "profile": "Profil",
+      "save": "Gem",
+      "logout": "Log ud",
+      "language": "Sprog"
+    }
+  },
+  "fi": {
+    "translation": {
+      "dashboard": "Kojelauta",
+      "settings": "Asetukset",
+      "profile": "Profiili",
+      "save": "Tallenna",
+      "logout": "Kirjaudu ulos",
+      "language": "Kieli"
+    }
+  },
+  "el": {
+    "translation": {
+      "dashboard": "Πίνακας ελέγχου",
+      "settings": "Ρυθμίσεις",
+      "profile": "Προφίλ",
+      "save": "Αποθήκευση",
+      "logout": "Αποσύνδεση",
+      "language": "Γλώσσα"
+    }
+  },
+  "cs": {
+    "translation": {
+      "dashboard": "Ovládací panel",
+      "settings": "Nastavení",
+      "profile": "Profil",
+      "save": "Uložit",
+      "logout": "Odhlásit",
+      "language": "Jazyk"
+    }
+  }
+}

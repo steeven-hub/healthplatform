@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Patient, Doctor, Appointment, Consultation, MedicalRecord, ChatSession, ChatMessage, ApiRecord, DoctorAvailability
+from patients.models import Patient
+from doctors.models import Doctor, DoctorAvailability
+from appointments.models import Appointment
+from consultations.models import Consultation
+from medicalrecords.models import MedicalRecord
+from chat.models import ChatSession, ChatMessage
+from notifications.models import Notification
+from .models import ApiRecord
 
 User = get_user_model()
 
@@ -103,7 +110,7 @@ class MedicalRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MedicalRecord
-        fields = ['id', 'patient', 'doctor', 'diagnosis', 'prescription', 'created_at']
+        fields = ['id', 'patient', 'doctor', 'diagnosis', 'prescription', 'date_created']
 
 class ChatSessionSerializer(serializers.ModelSerializer):
     patient = PatientSerializer(read_only=True)

@@ -3,28 +3,27 @@ from patients.models import Patient
 from doctors.models import Doctor
 
 class MedicalRecord(models.Model):
-    # On garde ForeignKey si c'est pour l'historique des actes
     patient = models.ForeignKey(
         Patient, 
         on_delete=models.CASCADE, 
         related_name="medical_records"
     )
-    # Le docteur qui a créé l'entrée
     doctor = models.ForeignKey(
         Doctor, 
-        on_delete=models.SET_NULL, # Si le docteur part, on garde le dossier
+        on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="created_records"
     )
     
-    # Ex: "Radiographie", "Analyse de sang", "Antécédent Chirurgical"
-    record_type = models.CharField(max_length=100) 
-    description = models.TextField()
+    # Fusion des champs de l'API et du modèle original
+    record_type = models.CharField(max_length=100, default="General") 
+    diagnosis = models.TextField(blank=True, null=True)
+    prescription = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     
-    # Ajout d'un champ pour joindre un fichier (compte-rendu PDF, image radio)
     attachment = models.FileField(upload_to='medical_docs/', null=True, blank=True)
-    
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.record_type} - {self.patient.user.last_name} ({self.date_created.strftime('%d/%m/%Y')})"
+        return f"Dossier {self.id} - {self.patient}"

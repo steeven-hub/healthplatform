@@ -40,6 +40,7 @@ urlpatterns = [
     path('list-doctors/', list_doctors_api, name='list_doctors'),
     path('book-appointment/', book_appointment_api, name='book_appointment'),
     path('appointments/<int:appointment_id>/status/', update_appointment_status_api, name='update_appointment_status'),
+    path('update-profile/', update_profile_api, name='update_profile'),
     path('token-login/', token_login_api, name='token_login'),
     path('generate-report/', generate_medical_report, name='generate_report'),
 

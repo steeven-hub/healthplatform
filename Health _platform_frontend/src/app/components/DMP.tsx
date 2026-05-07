@@ -31,33 +31,67 @@ export function DMP() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
 
-  const downloadPDF = (type: 'report' | 'prescription', content: string) => {
+  const downloadPDF = (type: 'report' | 'prescription', content: string, date?: string, doctorName?: string) => {
     if (!content) return;
     const doc = new jsPDF();
+    const docDate = date || new Date().toLocaleDateString('fr-FR');
+    const docDoctor = doctorName || `Dr. ${user?.last_name || 'Inconnu'}`;
+
+    // --- Header ---
     doc.setFontSize(22);
     doc.setTextColor(33, 150, 243);
     doc.text("AfriHealth Digital Platform", 105, 20, { align: 'center' });
-    doc.setFontSize(16);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Santé connectée pour tous", 105, 26, { align: 'center' });
+
+    // --- Title ---
+    doc.setFontSize(18);
     doc.setTextColor(0, 0, 0);
     const title = type === 'prescription' ? "ORDONNANCE MÉDICALE" : "COMPTE-RENDU MÉDICAL";
-    doc.text(title, 105, 35, { align: 'center' });
+    doc.text(title, 105, 45, { align: 'center' });
+    
     doc.setLineWidth(0.5);
-    doc.line(20, 40, 190, 40);
-    doc.setFontSize(12);
-    doc.text(`Patient: ${patient.name}`, 20, 55);
-    doc.text(`ID: ${patient.id}`, 20, 62);
-    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 140, 55);
-    doc.text(`Médecin: Dr. ${user?.last_name || 'Inconnu'}`, 20, 75);
-    doc.setFontSize(14);
-    doc.text(type === 'prescription' ? "Prescription:" : "Diagnostic & Observations:", 20, 95);
+    doc.setDrawColor(33, 150, 243);
+    doc.line(20, 50, 190, 50);
+
+    // --- Info Box ---
     doc.setFontSize(11);
-    const splitText = doc.splitTextToSize(content, 170);
-    doc.text(splitText, 20, 105);
-    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Patient: ${patient.name}`, 20, 65);
+    doc.text(`ID Patient: ${patient.id}`, 20, 72);
+    doc.text(`Groupe Sanguin: ${patient.bloodGroup}`, 20, 79);
+    
+    doc.text(`Date: ${docDate}`, 140, 65);
+    doc.text(`Lieu: Abidjan, Côte d'Ivoire`, 140, 72);
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Médecin traitant: ${docDoctor}`, 20, 95);
+    doc.setFont("helvetica", "normal");
+
+    // --- Content ---
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(20, 105, 170, 140); // Cadre pour le contenu
+    
+    doc.setFontSize(14);
+    doc.setTextColor(33, 150, 243);
+    doc.text(type === 'prescription' ? "PRESCRIPTION :" : "DIAGNOSTIC & OBSERVATIONS :", 25, 115);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    const splitText = doc.splitTextToSize(content, 160);
+    doc.text(splitText, 25, 125);
+
+    // --- Footer ---
+    doc.setFontSize(9);
     doc.setTextColor(150, 150, 150);
-    doc.text("Ce document a été généré électroniquement via AfriHealth IA.", 105, 280, { align: 'center' });
-    doc.save(`${type}_${patient.name.replace(/\s+/g, '_')}.pdf`);
-    toast.success("PDF téléchargé !");
+    doc.text("Ce document est authentique et a été généré via la plateforme sécurisée AfriHealth.", 105, 265, { align: 'center' });
+    doc.text("Contact: support@afrihealth.ci | www.afrihealth.ci", 105, 272, { align: 'center' });
+    
+    doc.save(`${type}_${patient.name.replace(/\s+/g, '_')}_${docDate.replace(/\//g, '-')}.pdf`);
+    toast.success("Document PDF généré !");
   };
 
   const fetchPatientData = async () => {
@@ -288,7 +322,17 @@ export function DMP() {
                   <div key={index} className="border-l-4 border-primary pl-4 pb-4 last:pb-0">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-medium text-lg">{record.diagnosis}</p>
+                        <div className="flex items-center gap-3">
+                          <p className="font-medium text-lg">{record.diagnosis}</p>
+                          <button 
+                            onClick={() => downloadPDF('report', record.diagnosis, new Date(record.date).toLocaleDateString('fr-FR'), record.doctor)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-600 border border-blue-200 rounded-md hover:bg-blue-500 hover:text-white transition-all text-xs font-bold"
+                            title="Télécharger le compte-rendu"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            PDF Rapport
+                          </button>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {new Date(record.date).toLocaleDateString('fr-FR', {
                             day: 'numeric',
@@ -302,10 +346,18 @@ export function DMP() {
 
                     {record.prescription && record.prescription.length > 0 && record.prescription[0] !== "" && (
                       <div className="mt-3 p-4 bg-accent/50 rounded-lg border border-border">
-                        <p className="text-sm font-bold flex items-center gap-2 mb-2 text-primary">
-                          <Pill className="w-4 h-4" />
-                          Prescription
-                        </p>
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-sm font-bold flex items-center gap-2 text-primary">
+                            <Pill className="w-4 h-4" />
+                            Prescription
+                          </p>
+                          <button 
+                            onClick={() => downloadPDF('prescription', record.prescription.join('\n'), new Date(record.date).toLocaleDateString('fr-FR'), record.doctor)}
+                            className="flex items-center gap-1 text-[10px] px-2 py-1 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
+                          >
+                            <Download className="w-3 h-3" /> PDF
+                          </button>
+                        </div>
                         <ul className="space-y-1">
                           {record.prescription.map((med: string, i: number) => (
                             <li key={i} className="text-sm text-foreground flex items-center gap-2">

@@ -130,6 +130,17 @@ export function Layout() {
               </Link>
             );
           })}
+          <Link
+            to="/app/settings"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive("/app/settings")
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-accent hover:text-accent-foreground"
+            }`}
+          >
+            <Settings className="w-5 h-5" />
+            <span>Paramètres</span>
+          </Link>
         </nav>
 
         <div className="p-4 mt-auto border-t border-sidebar-border">
@@ -212,12 +223,13 @@ export function Layout() {
               )}
             </div>
             
-            <button 
-              onClick={() => navigate("/app/profile")}
+            <Link 
+              to="/app/settings"
               className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground"
+              title="Paramètres"
             >
               <Settings className="w-5 h-5" />
-            </button>
+            </Link>
             
             <button 
               onClick={handleLogout}

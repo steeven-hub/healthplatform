@@ -10,6 +10,7 @@ import { Landing } from "./components/Landing";
 import { Availability } from "./components/Availability";
 import { BookAppointment } from "./components/BookAppointment";
 import { Profile } from "./components/Profile";
+import { Settings } from "./components/Settings";
 
 // Composant pour protéger les routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
       { path: "availability", Component: Availability },
       { path: "book-appointment", Component: BookAppointment },
       { path: "profile", Component: Profile },
+      { path: "settings", Component: Settings },
     ],
   },
 ]);

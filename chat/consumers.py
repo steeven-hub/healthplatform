@@ -63,15 +63,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, sender_id, message):
         try:
-            # On récupère la session et l'utilisateur proprement
             session = ChatSession.objects.get(id=self.session_id)
-            user = User.objects.get(id=sender_id)
+            sender = User.objects.get(id=sender_id)
             
-            return ChatMessage.objects.create(
+            # Créer le message avec les nouveaux champs
+            new_msg = ChatMessage.objects.create(
                 session=session,
-                sender=user,
-                message=message
+                sender_user=sender,
+                content=message
             )
+
+            # Notifier les autres participants
+            from notifications.models import Notification
+            other_participants = session.participants.exclude(id=sender_id)
+            for participant in other_participants:
+                Notification.objects.create(
+                    user=participant,
+                    title=f"Nouveau message de {sender.first_name or sender.username}",
+                    message=f"Vous avez reçu un nouveau message dans votre conversation."
+                )
+            
+            return new_msg
         except Exception as e:
             print(f"Erreur lors de l'enregistrement du message : {e}")
             return None
