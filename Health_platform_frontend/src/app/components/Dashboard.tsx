@@ -85,38 +85,45 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2>{data?.role === 'doctor' ? t('dashboard_doctor') : t('dashboard_patient')}</h2>
-        <p className="text-muted-foreground">{t('welcome_message')}</p>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Header & Health Pulse */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-extrabold tracking-tight">
+            {data?.role === 'doctor' ? t('dashboard_doctor') : t('dashboard_patient')}
+          </h2>
+          <p className="text-muted-foreground mt-1">{t('welcome_message')}</p>
+        </div>
+        {data?.role !== 'doctor' && (
+          <div className="bg-card border border-border/50 p-4 rounded-2xl shadow-sm flex items-center gap-4 w-full md:w-auto">
+             <div className="flex-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Santé Pulse</p>
+                <div className="w-48 h-2 bg-muted rounded-full mt-2 overflow-hidden">
+                    <div className="h-full bg-primary w-[75%] rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                </div>
+             </div>
+             <span className="text-2xl font-bold text-primary">75%</span>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {data?.stats.map((stat: any) => {
           const Icon = getIcon(stat.icon);
           return (
-            <div key={stat.label} className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm">{stat.label}</p>
-                  <p className="mt-2 text-2xl font-bold">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-lg ${
-                  stat.color === 'primary' ? 'bg-primary/10' : 
-                  stat.color === 'secondary' ? 'bg-secondary/10' : 
-                  'bg-chart-3/10'
-                }`}>
-                  <Icon className={`w-6 h-6 ${
-                    stat.color === 'primary' ? 'text-primary' : 
-                    stat.color === 'secondary' ? 'text-secondary' : 
-                    'text-chart-3'
-                  }`} />
-                </div>
+            <div key={stat.label} className="group relative overflow-hidden bg-card border border-border/50 rounded-2xl p-6 transition-all hover:shadow-lg hover:border-primary/20">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Icon className="w-24 h-24" />
               </div>
+              <p className="text-muted-foreground text-sm font-medium">{stat.label}</p>
+              <p className="mt-2 text-3xl font-extrabold">{stat.value}</p>
             </div>
           );
         })}
       </div>
+
+      {/* Content Areas - Same logic but refined cards */}
 
       {data?.role === 'doctor' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

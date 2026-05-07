@@ -29,6 +29,7 @@ class Consultation(models.Model):
     symptoms = models.TextField(verbose_name="Symptômes", blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
+    video_room_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="ID de salle vidéo")
 
     def __str__(self):
         return f"Consultation {self.id} - Dr. {self.doctor.username} / {self.patient.username}"

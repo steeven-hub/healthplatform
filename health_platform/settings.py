@@ -137,9 +137,12 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-# --- CLÉ API GEMINI ---
-# ATTENTION : Ne jamais commiter de clé API en dur.
-# Utilisez une variable d'environnement.
-API_KEY = os.environ.get("GEMINI_API_KEY")
+# --- CONFIGURATION STRIPE ---
+# Si vous n'avez pas encore défini la clé, une valeur factice est utilisée pour éviter le crash.
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "sk_test_default_value")
+
+# --- CLÉS API ---
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "CLE_PAR_DEFAUT")
+API_KEY = GEMINI_API_KEY
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

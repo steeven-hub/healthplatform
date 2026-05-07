@@ -2,21 +2,10 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
 from .views import *
+from consultations.views import ConsultationViewSet
 
 router = DefaultRouter()
-# ... (rest of router config)
-# router.register(r'users', UserViewSet)
-# router.register(r'patients', PatientViewSet)
-# router.register(r'doctors', DoctorViewSet)
-# router.register(r'appointments', AppointmentViewSet)
-# router.register(r'consultations', ConsultationViewSet)
-
-# # ViewSets avec basename obligatoire (ceux utilisant get_queryset)
-# router.register(r'medicalrecords', MedicalRecordViewSet, basename='medicalrecord')
-# router.register(r'chatsessions', ChatSessionViewSet)
-# router.register(r'chatmessages', ChatMessageViewSet)
-# router.register(r'api-records', ApiRecordViewSet)
-# router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'consultations', ConsultationViewSet)
 
 urlpatterns = [
     # 1. API REST (préfixée par api/ dans le navigateur via le routeur)

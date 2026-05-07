@@ -11,6 +11,7 @@ import { Availability } from "./components/Availability";
 import { BookAppointment } from "./components/BookAppointment";
 import { Profile } from "./components/Profile";
 import { Settings } from "./components/Settings";
+import { VideoConsultation } from "./components/VideoConsultation";
 
 // Composant pour protéger les routes
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
       { path: "admissions", Component: Admissions },
       { path: "availability", Component: Availability },
       { path: "book-appointment", Component: BookAppointment },
+      { path: "consultation/:consultationId/video", Component: VideoConsultation },
       { path: "profile", Component: Profile },
       { path: "settings", Component: Settings },
     ],

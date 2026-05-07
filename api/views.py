@@ -2,6 +2,7 @@ import os
 import requests
 import urllib3
 import json
+import stripe
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
@@ -15,6 +16,37 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+# Configuration Stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+class CreateCheckoutSessionView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Créer une session Stripe
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'eur',
+                        'unit_amount': 5000, # 50.00 EUR
+                        'product_data': {
+                            'name': 'Consultation Médicale',
+                        },
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url='http://localhost:5173/app/dashboard?success=true',
+                cancel_url='http://localhost:5173/app/book-appointment?canceled=true',
+            )
+            return Response({'url': checkout_session.url}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 from patients.models import Patient
 from doctors.models import Doctor, DoctorAvailability
@@ -202,6 +234,10 @@ def patient_detail_api(request, patient_id):
             return Response({'error': 'Accès interdit', 'debug': detail}, status=403)
     
     records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
+    
+    # Récupération des consultations réelles
+    consultations = Consultation.objects.filter(patient=patient.user).order_by('-created_at')
+    
     return Response({
         'id': f"P-{patient.id}",
         'name': f"{patient.user.first_name} {patient.user.last_name}",
@@ -211,7 +247,7 @@ def patient_detail_api(request, patient_id):
         'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
         'allergies': [], 'chronicConditions': [],
         'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else [], 'vitals': {'bp':'N/A','hr':'N/A','temp':'N/A','weight':'N/A'}} for r in records],
-        'consultations': []
+        'consultations': [{'id': c.id, 'reason': c.appointment.reason if c.appointment else "Consultation", 'date': c.created_at, 'notes': c.diagnosis} for c in consultations]
     })
 
 @api_view(['POST'])
