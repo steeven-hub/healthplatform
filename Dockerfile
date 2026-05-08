@@ -27,7 +27,10 @@ RUN python manage.py collectstatic --noinput --settings=health_platform.settings
 ENV DJANGO_SETTINGS_MODULE=health_platform.settings
 
 # Exposer le port
-EXPOSE 8000
+EXPOSE 10000
 
-# Commande de démarrage (Daphne pour le support ASGI/WebSockets)
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "health_platform.asgi:application"]
+# Rendre le script d'entrée exécutable
+RUN chmod +x entrypoint.sh
+
+# Commande de démarrage via le script d'entrée
+CMD ["./entrypoint.sh"]
