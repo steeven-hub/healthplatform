@@ -89,16 +89,29 @@ TEMPLATES = [
 AUTH_USER_MODEL = 'users.User'
 
 # --- BASE DE DONNÉES (POSTGRESQL) ---
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:root@localhost:5432/health_platform',
-        conn_max_age=600,
-    )
-}
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
-# Forçage SSL pour Render (nécessaire pour leur infrastructure)
-if os.environ.get('RENDER'):
-    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
+if DATABASE_URL:
+    print("CONSIGNES : Base de données de PRODUCTION détectée.")
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    print("CONSIGNES : Aucune DATABASE_URL trouvée, utilisation du LOCALHOST.")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'health_platform',
+            'USER': 'postgres',
+            'PASSWORD': 'root', 
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 # --- GESTION DE L'AUTHENTIFICATION ET REDIRECTION ---
 LOGIN_URL = '/api/login/'            
