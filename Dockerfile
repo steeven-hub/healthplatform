@@ -32,5 +32,5 @@ EXPOSE 10000
 # Rendre le script d'entrée exécutable
 RUN chmod +x entrypoint.sh
 
-# Commande de démarrage via le script d'entrée
-CMD ["./entrypoint.sh"]
+# Commande de démarrage forcée via ENTRYPOINT
+ENTRYPOINT ["./entrypoint.sh"]
