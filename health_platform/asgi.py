@@ -3,28 +3,29 @@ from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'health_platform.settings')
 
-# Initialise Django ASGI pour charger les applications
+# Initialize Django ASGI application early.
+# This should initialize the app registry.
 django_asgi_app = get_asgi_application()
 
+# Import Channels components
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 
-def application(scope):
-    """
-    Entry point for ASGI applications.
-    Handles both HTTP and WebSocket connections.
-    """
-    # Charger dynamiquement les routages uniquement lorsque nécessaire
-    # Ceci est une mesure de sécurité pour éviter les importations circulaires
-    # ou les chargements trop précoces qui causent AppRegistryNotReady
-    chat_routing = __import__('chat.routing', fromlist=['websocket_urlpatterns']).websocket_urlpatterns
-    notifications_routing = __import__('notifications.routing', fromlist=['websocket_urlpatterns']).websocket_urlpatterns
+# Import app-specific routing modules AFTER Django is initialized.
+# This is crucial to avoid AppRegistryNotReady.
+import chat.routing
+import notifications.routing
 
-    return ProtocolTypeRouter({
-        "http": django_asgi_app,
-        "websocket": AuthMiddlewareStack(
-            URLRouter(
-                chat_routing + notifications_routing
-            )
-        ),
-    })(scope)
+application = ProtocolTypeRouter({
+    # Route all standard HTTP requests through Django's ASGI application.
+    "http": django_asgi_app,
+
+    # Route WebSocket requests
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            # Combine URL patterns from chat and notifications apps
+            chat.routing.websocket_urlpatterns +
+            notifications.routing.websocket_urlpatterns
+        )
+    ),
+})
