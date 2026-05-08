@@ -89,19 +89,15 @@ AUTH_USER_MODEL = 'users.User'
 
 # --- BASE DE DONNÉES (POSTGRESQL) ---
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'health_platform',
-        'USER': 'postgres',
-        'PASSWORD': 'root', 
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.config(
+        default='postgresql://postgres:root@localhost:5432/health_platform',
+        conn_max_age=600,
+    )
 }
 
-# Utilisation de DATABASE_URL si disponible (déploiement sur Render)
-if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+# Forçage SSL pour Render (nécessaire pour leur infrastructure)
+if os.environ.get('RENDER'):
+    DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 # --- GESTION DE L'AUTHENTIFICATION ET REDIRECTION ---
 LOGIN_URL = '/api/login/'            
