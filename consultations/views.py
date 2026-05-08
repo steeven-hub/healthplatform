@@ -1,10 +1,14 @@
 import uuid
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Consultation
 from .serializers import ConsultationSerializer
+from appointments.models import Appointment
 
 
 from .medical_ai_service import MedicalAIService
@@ -37,3 +41,44 @@ class ConsultationViewSet(viewsets.ModelViewSet):
             consultation.save()
             
         return Response({"video_room_id": consultation.video_room_id})
+
+@login_required
+def consultation_list(request):
+    if hasattr(request.user, 'doctor'):
+        consultations = Consultation.objects.filter(doctor=request.user)
+    else:
+        consultations = Consultation.objects.filter(patient=request.user)
+    return render(request, 'consultations/consultation_list.html', {'consultations': consultations})
+
+@login_required
+def create_consultation(request):
+    # Logique simplifiée pour créer une consultation à partir d'un RDV
+    if request.method == 'POST':
+        appointment_id = request.POST.get('appointment_id')
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        consultation = Consultation.objects.create(
+            appointment=appointment,
+            patient=appointment.patient.user,
+            doctor=appointment.doctor.user,
+            diagnosis="En attente...",
+        )
+        return redirect('video_room', consultation_id=consultation.id)
+    return redirect('appointment_list')
+
+@login_required
+def video_room(request, consultation_id):
+    consultation = get_object_or_404(Consultation, id=consultation_id)
+    
+    # Vérification de sécurité
+    if request.user != consultation.patient and request.user != consultation.doctor:
+        return HttpResponse("Accès refusé", status=403)
+        
+    if not consultation.video_room_id:
+        consultation.video_room_id = str(uuid.uuid4())
+        consultation.save()
+        
+    return render(request, 'consultations/video_room.html', {
+        'consultation': consultation,
+        'room_name': consultation.video_room_id,
+        'user_display_name': request.user.get_full_name() or request.user.username
+    })

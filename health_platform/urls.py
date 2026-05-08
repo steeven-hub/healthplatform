@@ -15,12 +15,13 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('appointments/', include('appointments.urls')),
     path('chat/', include('chat.urls')),
+    path('payments/', include('payments.urls')),
     
     # Tu peux décommenter au fur et à mesure si tu ajoutes des fichiers urls.py dans ces dossiers
     # path('patients/', include('patients.urls')),
     # path('doctors/', include('doctors.urls')),
-    # path('consultations/', include('consultations.urls')),
-    # path('medicalrecords/', include('medicalrecords.urls')),
+    path('consultations/', include('consultations.urls')),
+    path('medical-records/', include('medicalrecords.urls')),
 ]
 
 # INDISPENSABLE : Permet de consulter les fichiers (PDF, Images) en développement

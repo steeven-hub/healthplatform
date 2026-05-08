@@ -20,11 +20,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie du code source
 COPY . .
 
-# Variables d'environnement par défaut (à surcharger en prod)
+# Collecte des fichiers statiques
+RUN python manage.py collectstatic --noinput --settings=health_platform.settings
+
+# Variables d'environnement par défaut
 ENV DJANGO_SETTINGS_MODULE=health_platform.settings
 
-# Exposer le port de Gunicorn
+# Exposer le port
 EXPOSE 8000
 
-# Commande de démarrage (Gunicorn pour WSGI)
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "health_platform.wsgi:application"]
+# Commande de démarrage (Daphne pour le support ASGI/WebSockets)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "health_platform.asgi:application"]

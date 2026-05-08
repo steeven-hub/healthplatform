@@ -8,10 +8,10 @@ from .forms import AppointmentForm
 @login_required
 def appointment_list(request):
     user = request.user
-    if hasattr(user, 'doctor'):
-        appointments = Appointment.objects.filter(doctor=user)
-    elif hasattr(user, 'patient'):
-        appointments = Appointment.objects.filter(patient=user)
+    if hasattr(user, 'api_doctor'):
+        appointments = Appointment.objects.filter(doctor=user.api_doctor)
+    elif hasattr(user, 'api_patient'):
+        appointments = Appointment.objects.filter(patient=user.api_patient)
     else:
         appointments = Appointment.objects.none()
     return render(request, 'appointments/appointment_list.html', {'appointments': appointments})
@@ -23,7 +23,9 @@ def book_appointment(request):
         form = AppointmentForm(request.POST)
         if form.is_valid():
             appointment = form.save(commit=False)
-            appointment.patient = request.user
+            appointment.patient = request.user.api_patient
+            if appointment.price == 0:
+                appointment.price = 50.00  # Prix par défaut pour le test
             appointment.save()
             messages.success(request, "Rendez-vous réservé avec succès !")
             return redirect('appointment_list')

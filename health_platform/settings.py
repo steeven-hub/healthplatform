@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'medicalrecords',
     'chat',
     'notifications',
+    'payments',
     'api',
 ]
 
@@ -140,6 +141,7 @@ REST_FRAMEWORK = {
 # --- CONFIGURATION STRIPE ---
 # Si vous n'avez pas encore défini la clé, une valeur factice est utilisée pour éviter le crash.
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "sk_test_default_value")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "whsec_test_default_value")
 
 # --- CLÉS API ---
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "CLE_PAR_DEFAUT")

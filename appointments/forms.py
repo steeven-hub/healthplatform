@@ -1,18 +1,16 @@
 from django import forms
 from .models import Appointment
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
+from doctors.models import Doctor
 
 class AppointmentForm(forms.ModelForm):
     class Meta:
         model = Appointment
-        fields = ['doctor', 'date']  # patient sera ajouté automatiquement dans la vue
+        fields = ['doctor', 'date', 'reason']
         widgets = {
             'date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'reason': forms.Textarea(attrs={'rows': 3}),
         }
 
-    # 🔹 Filtrer uniquement les docteurs dans la liste
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['doctor'].queryset = User.objects.filter(role='doctor', is_approved=True)
+        self.fields['doctor'].queryset = Doctor.objects.filter(user__is_approved=True)
