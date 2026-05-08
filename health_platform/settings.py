@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import dj_database_url
 
 # --- CHEMINS DE BASE ---
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,6 +98,10 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+# Utilisation de DATABASE_URL si disponible (déploiement sur Render)
+if os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 
 # --- GESTION DE L'AUTHENTIFICATION ET REDIRECTION ---
 LOGIN_URL = '/api/login/'            
