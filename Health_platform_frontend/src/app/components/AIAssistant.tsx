@@ -22,7 +22,7 @@ export function AIAssistant() {
   const fetchSessions = async () => {
     try {
       const config = patientId ? { params: { patient_id: patientId } } : {};
-      const response = await api.get("/chat-sessions/", config);
+      const response = await api.get("chat-sessions/", config);
       setSessions(response.data);
       
       // Si on n'a pas de session active, on prend la plus récente
@@ -42,7 +42,7 @@ export function AIAssistant() {
       if (sessionId) params.session_id = sessionId;
       if (patientId) params.patient_id = patientId;
 
-      const response = await api.get("/ai-assistant/", { params });
+      const response = await api.get("ai-assistant/", { params });
       setMessages(response.data.history || []);
       if (response.data.session_id) {
         setCurrentSessionId(response.data.session_id);
@@ -73,7 +73,7 @@ export function AIAssistant() {
     try {
       setIsLoading(true);
       const data = patientId ? { patient_id: patientId } : {};
-      const response = await api.post("/chat-sessions/", data);
+      const response = await api.post("chat-sessions/", data);
       setSessions(prev => [response.data, ...prev]);
       setCurrentSessionId(response.data.id);
       setShowHistory(false); // Sur mobile, fermer le menu après création
@@ -88,7 +88,7 @@ export function AIAssistant() {
     e.stopPropagation();
     if (!confirm("Supprimer cette conversation ?")) return;
     try {
-      await api.delete(`/chat-sessions/${id}/delete/`);
+      await api.delete(`chat-sessions/${id}/delete/`);
       setSessions(prev => prev.filter(s => s.id !== id));
       if (currentSessionId === id) {
         setCurrentSessionId(null);
@@ -118,7 +118,7 @@ export function AIAssistant() {
       if (currentSessionId) payload.session_id = currentSessionId;
       if (patientId) payload.patient_id = patientId;
 
-      const response = await api.post("/ai-assistant/", payload);
+      const response = await api.post("ai-assistant/", payload);
       
       setMessages(prev => [...prev, {
         role: "assistant" as const,

@@ -49,11 +49,11 @@ export function Layout() {
 
   // Initialisation utilisateur et notifications
   useEffect(() => {
-    api.get("/me/").then(res => setUser(res.data)).catch(console.error);
+    api.get("me/").then(res => setUser(res.data)).catch(console.error);
     
     const fetchNotifications = async () => {
       try {
-        const res = await api.get("/notifications/");
+        const res = await api.get("notifications/");
         setNotifications(res.data);
         setNotificationCount(res.data.filter((n: any) => !n.is_read).length);
       } catch (e) {
@@ -68,7 +68,7 @@ export function Layout() {
 
   const markAllRead = async () => {
     try {
-      await api.post("/notifications/");
+      await api.post("notifications/");
       setNotificationCount(0);
       setNotifications(prev => prev.map(n => ({...n, is_read: true})));
     } catch (e) {

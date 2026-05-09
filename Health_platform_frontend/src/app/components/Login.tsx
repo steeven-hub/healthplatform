@@ -14,7 +14,7 @@ export function Login() {
   const handleDemoLogin = async (role: string) => {
     setIsLoading(true);
     try {
-      const response = await api.post("/token-login/", { role });
+      const response = await api.post("api-token-auth/", { role });
       localStorage.setItem("token", response.data.token);
       navigate("/app/dashboard");
     } catch (err) {
@@ -37,7 +37,7 @@ export function Login() {
 
     try {
       console.log("DEBUG: Tentative de login avec:", { username, password });
-      const response = await api.post("/token-login/", {
+      const response = await api.post("api-token-auth/", {
         username: username,
         password: password,
       });

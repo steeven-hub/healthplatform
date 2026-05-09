@@ -13,7 +13,7 @@ export function Availability() {
   const fetchAvailabilities = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get("/availability/");
+      const response = await api.get("availability/");
       setAvailabilities(response.data);
     } catch (error) {
       console.error("Erreur récup dispos:", error);
@@ -30,7 +30,7 @@ export function Availability() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await api.post("/availability/", newSlot);
+      await api.post("availability/", newSlot);
       fetchAvailabilities();
     } catch (error) {
       console.error("Erreur ajout dispo:", error);

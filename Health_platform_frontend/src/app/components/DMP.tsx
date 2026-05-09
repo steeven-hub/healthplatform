@@ -97,18 +97,18 @@ export function DMP() {
   const fetchPatientData = async () => {
     setIsLoading(true);
     try {
-      const userRes = await api.get("/me/");
+      const userRes = await api.get("me/");
       setUser(userRes.data);
 
       let id = patientId;
       if (!id && userRes.data.role === 'patient') {
-        const profileRes = await api.get("/patient-detail/my-profile/");
+        const profileRes = await api.get("patient-detail/my-profile/");
         id = profileRes.data.id;
       } else if (!id) {
         id = "1";
       }
 
-      const response = await api.get(`/patient-detail/${id}/`);
+      const response = await api.get(`patient-detail/${id}/`);
       setPatient(response.data);
     } catch (error) {
       console.error("Erreur lors de la récupération du dossier:", error);
@@ -128,7 +128,7 @@ export function DMP() {
     }
     setIsGenerating(type);
     try {
-        const response = await api.post("/generate-report/", {
+        const response = await api.post("generate-report/", {
             diagnosis: newRecord.diagnosis,
             type: type
         });
@@ -149,7 +149,7 @@ export function DMP() {
     if (!newRecord.diagnosis) return;
     setIsSubmitting(true);
     try {
-      await api.post("/medical-records/create/", {
+      await api.post("medical-records/create/", {
         patient_id: patient.id,
         diagnosis: newRecord.diagnosis,
         prescription: newRecord.prescription

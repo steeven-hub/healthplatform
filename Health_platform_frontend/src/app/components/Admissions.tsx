@@ -14,7 +14,7 @@ export function Admissions() {
   const fetchAdmissions = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get(`/admissions/?status=${filterStatus}`);
+      const response = await api.get(`admissions/?status=${filterStatus}`);
       setAdmissions(response.data);
     } catch (error) {
       console.error("Erreur lors de la récupération des admissions:", error);
@@ -29,7 +29,7 @@ export function Admissions() {
 
   const handleUpdateStatus = async (id: number, newStatus: string) => {
     try {
-      await api.patch(`/appointments/${id}/status/`, { status: newStatus });
+      await api.patch(`appointments/${id}/status/`, { status: newStatus });
       toast.success(`Rendez-vous ${newStatus === 'confirmed' ? 'confirmé' : 'mis à jour'}`);
       fetchAdmissions();
     } catch (error) {
@@ -41,7 +41,7 @@ export function Admissions() {
     if (!newPatient.name || !newPatient.phone) return;
     setIsSubmitting(true);
     try {
-      await api.post("/admissions/create/", newPatient);
+      await api.post("admissions/create/", newPatient);
       setShowAddModal(false);
       setNewPatient({ name: "", age: "", phone: "", reason: "" });
       fetchAdmissions();
