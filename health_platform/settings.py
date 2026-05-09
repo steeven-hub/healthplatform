@@ -123,7 +123,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000', 
     'http://localhost:8000', 
     'http://localhost:5173',
-    'https://healthplatform.onrender.com'
+    'https://healthplatform.onrender.com',
+    'https://healthplatform-tau.vercel.app'
 ]
 CSRF_COOKIE_HTTPONLY = False  # Permet la lecture si nécessaire par JS
 

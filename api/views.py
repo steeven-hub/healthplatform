@@ -40,8 +40,8 @@ class CreateCheckoutSessionView(APIView):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url='http://localhost:5173/app/dashboard?success=true',
-                cancel_url='http://localhost:5173/app/book-appointment?canceled=true',
+                success_url='https://healthplatform-tau.vercel.app/app/dashboard?success=true',
+                cancel_url='https://healthplatform-tau.vercel.app/app/book-appointment?canceled=true',
             )
             return Response({'url': checkout_session.url}, status=status.HTTP_201_CREATED)
         except Exception as e:
