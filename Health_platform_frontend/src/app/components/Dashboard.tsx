@@ -55,8 +55,8 @@ export function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get("/stats/");
-        setData(response.data);
+        const response = await api.get("stats/");
+        setStats(response.data);
       } catch (error) {
         console.error("Erreur lors de la récupération des stats:", error);
       } finally {

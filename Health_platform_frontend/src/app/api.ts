@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://healthplatform.onrender.com/api',
+  baseURL: 'https://healthplatform.onrender.com/api/',
   headers: {
     'Content-Type': 'application/json',
   },

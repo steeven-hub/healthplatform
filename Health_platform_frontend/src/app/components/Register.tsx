@@ -69,7 +69,7 @@ export function Register() {
       };
 
       console.log("DEBUG: Envoi inscription:", payload);
-      await api.post("/register/", payload);
+      await api.post("register/", payload);
       navigate("/login");
     } catch (err: any) {
       console.error("Registration error:", err);

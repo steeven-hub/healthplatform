@@ -15,7 +15,7 @@ export function Settings() {
   };
 
   useEffect(() => {
-    api.get('/me/').then(res => setUser(res.data));
+    api.get('me/').then(res => setUser(res.data));
   }, []);
 
   return (
@@ -75,7 +75,7 @@ function ProfileSettings({ user, onLangChange }: { user: any, onLangChange: (l: 
 
   const saveProfile = async () => {
     try {
-      await api.patch('/update-profile/', formData);
+      await api.patch('update-profile/', formData);
       toast.success("Profil mis à jour !");
     } catch (e) {
       toast.error("Erreur de sauvegarde");

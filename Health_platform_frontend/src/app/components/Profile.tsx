@@ -10,10 +10,10 @@ export function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const uRes = await api.get("/me/");
+        const uRes = await api.get("me/");
         setUser(uRes.data);
         // On récupère le profil complet (Patient ou Doctor)
-        const pRes = await api.get("/patient-detail/my-profile/");
+        const pRes = await api.get("patient-detail/my-profile/");
         setProfile(pRes.data);
       } catch (error) {
         console.error("Erreur profil:", error);

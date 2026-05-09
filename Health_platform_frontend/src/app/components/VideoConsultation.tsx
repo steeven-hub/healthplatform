@@ -19,7 +19,7 @@ export function VideoConsultation() {
       try {
         const token = localStorage.getItem('token');
         console.log("DEBUG: Token envoyé:", token);
-        const response = await api.get(`/consultations/${consultationId}/get_video_room/`);
+        const response = await api.get(`consultations/${consultationId}/get_video_room/`);
         setRoomId(response.data.video_room_id);
       } catch (error) {
         console.error("Erreur room ID:", error);

@@ -15,11 +15,11 @@ export function BookAppointment() {
 
   const fetchData = async () => {
     try {
-      const [docsRes, apptsRes] = await Promise.all([
-        api.get("/list-doctors/"),
-        api.get("/book-appointment/")
+      const [doctorsRes, appointmentsRes] = await Promise.all([
+        api.get("list-doctors/"),
+        api.get("book-appointment/")
       ]);
-      setDoctors(docsRes.data);
+      setDoctors(doctorsRes.data);
       setMyAppointments(apptsRes.data);
     } catch (error) {
       console.error("Erreur chargement données:", error);
@@ -36,7 +36,7 @@ export function BookAppointment() {
     setSelectedDoctor(doctor);
     setIsLoadingSlots(true);
     try {
-      const response = await api.get(`/availability/?doctor_id=${doctor.id}`);
+      const response = await api.get(`availability/?doctor_id=${doctor.id}`);
       setAvailabilities(response.data);
     } catch (error) {
       console.error("Erreur récup créneaux:", error);
@@ -48,7 +48,7 @@ export function BookAppointment() {
   const handleBook = async (slotId: number) => {
     setIsSubmitting(true);
     try {
-      await api.post("/book-appointment/", {
+      await api.post("book-appointment/", {
         availability_id: slotId,
         reason: reason || "Consultation générale"
       });
