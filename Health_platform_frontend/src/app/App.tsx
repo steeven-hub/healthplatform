@@ -1,6 +1,7 @@
 import { RouterProvider, isRouteErrorResponse, useRouteError } from 'react-router';
 import { router } from './routes';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
 
 function ErrorBoundary() {
   let error = useRouteError();
@@ -18,6 +19,7 @@ export default function App() {
     <div className="app-container min-h-screen">
       <Toaster richColors position="top-right" />
       <RouterProvider router={router} />
+      <Analytics />
     </div>
   );
 }
