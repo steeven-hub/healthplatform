@@ -20,8 +20,7 @@ export function BookAppointment() {
         api.get("book-appointment/")
       ]);
       setDoctors(doctorsRes.data);
-      setMyAppointments(apptsRes.data);
-    } catch (error) {
+      setMyAppointments(appointmentsRes.data);    } catch (error) {
       console.error("Erreur chargement données:", error);
     } finally {
       setIsLoading(false);
