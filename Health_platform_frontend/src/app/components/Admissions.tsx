@@ -86,7 +86,7 @@ export function Admissions() {
 
       <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex gap-2 flex-1">
+          <div className="flex gap-2 flex-1 items-center">
             <input
               type="text"
               placeholder="Rechercher par nom, ID ou téléphone..."
