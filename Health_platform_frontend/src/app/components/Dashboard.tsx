@@ -86,6 +86,12 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {/* DEBUG: Affichage des données brutes */}
+      <div className="p-4 bg-gray-100 rounded-lg text-xs overflow-auto">
+        <h4 className="font-bold">Données API reçues (Debug):</h4>
+        <pre>{JSON.stringify(data, null, 2)}</pre>
+      </div>
+
       {/* Header & Health Pulse */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

@@ -132,15 +132,12 @@ def dashboard_stats_api(request):
             })
             
         elif patient:
-            # Récupérer tous les rendez-vous du patient pour débogage
-            all_my_appointments = Appointment.objects.filter(patient=patient).order_by('-date')
-            print(f"DEBUG: Patient ID {patient.id} - Nombre total de RDV trouvés: {all_my_appointments.count()}")
-            
-            # Appliquer le filtre de date pour l'affichage
-            my_appointments = all_my_appointments.filter(date__gte=timezone.now())
-            print(f"DEBUG: Nombre de RDV futurs trouvés: {my_appointments.count()}")
+            # Récupérer tous les rendez-vous du patient (futurs et passés)
+            my_appointments = Appointment.objects.filter(patient=patient).order_by('-date')
+            print(f"DEBUG: Patient {patient.id} - Nombre TOTAL de RDV trouvés: {my_appointments.count()}")
             
             my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')[:5]
+
             
             appts_data = []
             for a in my_appointments:
@@ -633,7 +630,8 @@ def logout_user(request):
     messages.info(request, "Vous avez été déconnecté.")
     return redirect('login_page')
 
-@login_required(login_url='/api/login/')
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
 def dashboard_view(request):
     is_doctor = hasattr(request.user, 'api_doctor')
     is_patient = hasattr(request.user, 'api_patient')
@@ -643,7 +641,7 @@ def dashboard_view(request):
         'total_patients': Patient.objects.count() if is_doctor else 0,
         'total_appointments': Appointment.objects.count() if is_doctor else Appointment.objects.filter(patient__user=request.user).count()
     }
-    return render(request, 'api/home.html', context)
+    return Response(context)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
