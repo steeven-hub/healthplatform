@@ -9,9 +9,11 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  console.log("DEBUG: Intercepteur Axios - Token trouvé:", token ? "OUI" : "NON");
   if (token) {
     config.headers.Authorization = `Token ${token}`;
+    console.log("DEBUG: Requête envoyée avec en-tête Authorization:", config.headers.Authorization);
+  } else {
+    console.warn("DEBUG: Aucune requête token trouvée dans localStorage");
   }
   return config;
 }, (error) => {
