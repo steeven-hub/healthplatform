@@ -226,13 +226,9 @@ export function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                        appt.status === 'confirmed' ? 'bg-green-500/10 text-green-600' : 
-                        appt.status === 'pending' ? 'bg-orange-500/10 text-orange-600' :
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {appt.status === 'confirmed' ? t('confirmed') : appt.status === 'pending' ? t('pending') : appt.status}
-                      </span>
+                      <Link to={`/app/consultation/${appt.id}/video`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold">
+                        Vidéo
+                      </Link>
                     </div>
                   </div>
                 ))
