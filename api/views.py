@@ -649,7 +649,16 @@ def list_patients_api(request):
     if not hasattr(request.user, 'api_doctor'):
         return Response({'error': 'Accès réservé au personnel médical.'}, status=403)
     
+    query = request.query_params.get('search', '')
     patients = Patient.objects.all()
+    
+    if query:
+        patients = patients.filter(
+            models.Q(user__first_name__icontains=query) | 
+            models.Q(user__last_name__icontains=query) | 
+            models.Q(id__icontains=query.replace('P-', ''))
+        )
+    
     data = [{
         'id': f"P-{p.id}",
         'name': f"{p.user.first_name} {p.user.last_name}",

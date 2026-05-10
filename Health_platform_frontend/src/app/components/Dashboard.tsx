@@ -177,14 +177,13 @@ export function Dashboard() {
               <span className="text-sm text-muted-foreground">{data?.today_patients?.length || 0} {t('appointments')}</span>
             </div>
             <div className="space-y-3">
-              {data?.today_patients && data.today_patients.length > 0 ? (
-                data.today_patients.map((patient: any) => (
+              {data?.today_patients && data.today_patients.map((patient: any) => (
                   <div
                     key={patient.id}
-                    className="flex items-center gap-4 p-3 border border-border rounded-lg hover:bg-accent transition-colors"
+                    className="flex items-center gap-4 p-3 border border-border rounded-lg bg-white shadow-sm"
                   >
                     <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-primary font-bold">{patient.patient_name.charAt(0)}</span>
+                      <span className="text-primary font-bold">{patient.patient_name ? patient.patient_name.charAt(0) : '?'}</span>
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">{patient.patient_name}</p>
@@ -192,20 +191,14 @@ export function Dashboard() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium">{patient.time}</p>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                        patient.status === 'Confirmé' ? 'bg-green-500/10 text-green-600' : 
-                        patient.status === 'En attente' ? 'bg-orange-500/10 text-orange-600' :
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {patient.status}
-                      </span>
+                      <Link to={`/app/consultation/${patient.id}/video`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold">
+                        Vidéo
+                      </Link>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  {t('no_appointments_today')}
-                </div>
+                ))}
+              {(!data?.today_patients || data.today_patients.length === 0) && (
+                <div className="text-center py-8 text-muted-foreground">Aucune consultation trouvée.</div>
               )}
             </div>
           </div>
