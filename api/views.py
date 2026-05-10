@@ -135,6 +135,9 @@ def dashboard_stats_api(request):
             my_appointments = Appointment.objects.filter(patient=patient, date__gte=timezone.now()).order_by('date')
             my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')[:5]
             
+            # DEBOGAGE : Logguer le nombre de rendez-vous trouvés
+            print(f"DEBUG: Patient {patient.id} - Nombre de RDV trouvés: {my_appointments.count()}")
+            
             appts_data = []
             for a in my_appointments:
                 try:
@@ -146,7 +149,9 @@ def dashboard_stats_api(request):
                         'reason': a.reason,
                         'status': a.status
                     })
-                except: continue
+                except Exception as e:
+                    print(f"DEBUG: Erreur formattage RDV {a.id}: {e}")
+                    continue
 
             records_data = []
             for r in my_records:
