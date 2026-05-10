@@ -91,7 +91,7 @@ export function Layout() {
       ]
     : [
         { path: "/app/dashboard", icon: LayoutDashboard, label: "Mon Accueil" },
-        { path: "/app/dmp", icon: FileText, label: "Mon Dossier" },
+        { path: "/app/dmp/my-profile", icon: FileText, label: "Mon Dossier" },
         { path: "/app/book-appointment", icon: Calendar, label: "Prendre RDV" },
         { path: "/app/assistant", icon: Brain, label: "Assistant IA" },
       ];

@@ -9,6 +9,7 @@ export function AIAssistant() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   const [input, setInput] = useState("");
+  const [sessionSearch, setSessionSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [showHistory, setShowHistory] = useState(true);
@@ -21,10 +22,13 @@ export function AIAssistant() {
   // 1. Charger la liste des sessions
   const fetchSessions = async () => {
     try {
-      const config = patientId ? { params: { patient_id: patientId } } : {};
-      const response = await api.get("chat-sessions/", config);
+      const params: any = {};
+      if (patientId) params.patient_id = patientId;
+      if (sessionSearch) params.search = sessionSearch;
+
+      const response = await api.get("chat-sessions/", { params });
       setSessions(response.data);
-      
+
       // Si on n'a pas de session active, on prend la plus récente
       if (!currentSessionId && response.data.length > 0) {
         setCurrentSessionId(response.data[0].id);
@@ -34,9 +38,9 @@ export function AIAssistant() {
     }
   };
 
-  // 2. Charger l'historique de la session active
-  const fetchMessages = async (sessionId: number | null) => {
-    try {
+  useEffect(() => {
+    fetchSessions();
+  }, [patientId, sessionSearch]);
       setIsLoading(true);
       const params: any = {};
       if (sessionId) params.session_id = sessionId;
@@ -161,7 +165,17 @@ export function AIAssistant() {
           </button>
         </div>
         
-        <div className="p-4">
+        <div className="p-4 space-y-4">
+          <div className="relative">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input 
+              type="text"
+              placeholder="Rechercher un chat..."
+              value={sessionSearch}
+              onChange={(e) => setSessionSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-accent/20 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-xs"
+            />
+          </div>
           <button 
             onClick={startNewChat}
             className="w-full flex items-center justify-center gap-2 p-3 bg-primary/10 text-primary rounded-xl border border-primary/20 hover:bg-primary/20 transition-all font-medium"

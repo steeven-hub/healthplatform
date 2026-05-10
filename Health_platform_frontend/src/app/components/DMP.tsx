@@ -16,7 +16,8 @@ import {
   Loader2,
   PlusCircle,
   Sparkles,
-  Download
+  Download,
+  Search
 } from "lucide-react";
 import api from "../api";
 import { toast } from "sonner";
@@ -30,6 +31,13 @@ export function DMP() {
   const [newRecord, setNewRecord] = useState({ diagnosis: "", prescription: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [historySearch, setHistorySearch] = useState("");
+
+  const filteredHistory = patient?.history?.filter((record: any) => 
+    record.diagnosis.toLowerCase().includes(historySearch.toLowerCase()) ||
+    record.doctor.toLowerCase().includes(historySearch.toLowerCase()) ||
+    (record.prescription && record.prescription.join(' ').toLowerCase().includes(historySearch.toLowerCase()))
+  ) || [];
 
   const downloadPDF = (type: 'report' | 'prescription', content: string, date?: string, doctorName?: string) => {
     if (!content) return;
@@ -37,32 +45,26 @@ export function DMP() {
     const docDate = date || new Date().toLocaleDateString('fr-FR');
     const docDoctor = doctorName || `Dr. ${user?.last_name || 'Inconnu'}`;
 
-    // --- Header ---
     doc.setFontSize(22);
     doc.setTextColor(33, 150, 243);
     doc.text("AfriHealth Digital Platform", 105, 20, { align: 'center' });
-    
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text("Santé connectée pour tous", 105, 26, { align: 'center' });
 
-    // --- Title ---
     doc.setFontSize(18);
     doc.setTextColor(0, 0, 0);
     const title = type === 'prescription' ? "ORDONNANCE MÉDICALE" : "COMPTE-RENDU MÉDICAL";
     doc.text(title, 105, 45, { align: 'center' });
-    
     doc.setLineWidth(0.5);
     doc.setDrawColor(33, 150, 243);
     doc.line(20, 50, 190, 50);
 
-    // --- Info Box ---
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
     doc.text(`Patient: ${patient.name}`, 20, 65);
     doc.text(`ID Patient: ${patient.id}`, 20, 72);
     doc.text(`Groupe Sanguin: ${patient.bloodGroup}`, 20, 79);
-    
     doc.text(`Date: ${docDate}`, 140, 65);
     doc.text(`Lieu: Abidjan, Côte d'Ivoire`, 140, 72);
 
@@ -71,25 +73,20 @@ export function DMP() {
     doc.text(`Médecin traitant: ${docDoctor}`, 20, 95);
     doc.setFont("helvetica", "normal");
 
-    // --- Content ---
     doc.setDrawColor(200, 200, 200);
-    doc.rect(20, 105, 170, 140); // Cadre pour le contenu
-    
+    doc.rect(20, 105, 170, 140);
     doc.setFontSize(14);
     doc.setTextColor(33, 150, 243);
     doc.text(type === 'prescription' ? "PRESCRIPTION :" : "DIAGNOSTIC & OBSERVATIONS :", 25, 115);
-    
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
     const splitText = doc.splitTextToSize(content, 160);
     doc.text(splitText, 25, 125);
 
-    // --- Footer ---
     doc.setFontSize(9);
     doc.setTextColor(150, 150, 150);
     doc.text("Ce document est authentique et a été généré via la plateforme sécurisée AfriHealth.", 105, 265, { align: 'center' });
     doc.text("Contact: support@afrihealth.ci | www.afrihealth.ci", 105, 272, { align: 'center' });
-    
     doc.save(`${type}_${patient.name.replace(/\s+/g, '_')}_${docDate.replace(/\//g, '-')}.pdf`);
     toast.success("Document PDF généré !");
   };
@@ -99,15 +96,11 @@ export function DMP() {
     try {
       const userRes = await api.get("me/");
       setUser(userRes.data);
-
       let id = patientId;
       if (!id && userRes.data.role === 'patient') {
         const profileRes = await api.get("patient-detail/my-profile/");
         id = profileRes.data.id;
-      } else if (!id) {
-        id = "1";
-      }
-
+      } else if (!id) { id = "1"; }
       const response = await api.get(`patient-detail/${id}/`);
       setPatient(response.data);
     } catch (error) {
@@ -156,7 +149,7 @@ export function DMP() {
       });
       setNewRecord({ diagnosis: "", prescription: "" });
       setShowAddRecord(false);
-      fetchPatientData(); // Rafraîchir l'historique
+      fetchPatientData();
     } catch (error) {
       console.error("Erreur lors de l'ajout du dossier:", error);
     } finally {
@@ -215,7 +208,6 @@ export function DMP() {
                 </button>
               )}
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
               <div className="flex items-center gap-3 bg-accent/30 p-4 rounded-2xl">
                 <Phone className="w-5 h-5 text-muted-foreground" />
@@ -300,17 +292,8 @@ export function DMP() {
                   />
                 </div>
                 <div className="flex gap-4">
-                  <button
-                    onClick={() => setShowAddRecord(false)}
-                    className="px-8 py-3 bg-accent font-bold rounded-2xl hover:bg-accent/80 transition-all"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    disabled={isSubmitting || !newRecord.diagnosis}
-                    onClick={handleAddRecord}
-                    className="flex-1 px-8 py-3 bg-primary text-primary-foreground font-bold rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20"
-                  >
+                  <button onClick={() => setShowAddRecord(false)} className="px-8 py-3 bg-accent font-bold rounded-2xl hover:bg-accent/80 transition-all">Annuler</button>
+                  <button disabled={isSubmitting || !newRecord.diagnosis} onClick={handleAddRecord} className="flex-1 px-8 py-3 bg-primary text-primary-foreground font-bold rounded-2xl hover:bg-primary/90 transition-all flex items-center justify-center gap-3 shadow-lg shadow-primary/20">
                     {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
                     Enregistrer le Dossier
                   </button>
@@ -320,13 +303,26 @@ export function DMP() {
           )}
 
           <div className="bg-card border border-border/50 rounded-3xl p-8 shadow-sm">
-            <h3 className="flex items-center gap-3 mb-8 text-xl font-bold">
-               <div className="p-2 bg-primary/10 rounded-xl"><FileText className="w-5 h-5 text-primary" /></div>
-               Historique Médical
-            </h3>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <h3 className="flex items-center gap-3 text-xl font-bold">
+                <div className="p-2 bg-primary/10 rounded-xl"><FileText className="w-5 h-5 text-primary" /></div>
+                Historique Médical
+                </h3>
+                <div className="relative w-full md:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input 
+                        type="text"
+                        placeholder="Rechercher dans l'historique..."
+                        value={historySearch}
+                        onChange={(e) => setHistorySearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-accent/20 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-sm"
+                    />
+                </div>
+            </div>
+            
             <div className="space-y-8">
-              {patient.history && patient.history.length > 0 ? (
-                patient.history.map((record: any, index: number) => (
+              {filteredHistory.length > 0 ? (
+                filteredHistory.map((record: any, index: number) => (
                   <div key={index} className="relative border-l-2 border-border pl-8">
                     <div className="absolute -left-[9px] top-0 w-4 h-4 bg-background border-2 border-primary rounded-full" />
                     <div className="flex items-start justify-between mb-4">
@@ -343,11 +339,7 @@ export function DMP() {
                           </button>
                         </div>
                         <p className="text-sm font-semibold text-muted-foreground mt-1">
-                          {new Date(record.date).toLocaleDateString('fr-FR', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
+                          {new Date(record.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-accent/50 px-3 py-1 rounded-full text-muted-foreground">{record.doctor}</span>
@@ -357,13 +349,9 @@ export function DMP() {
                       <div className="mt-4 p-6 bg-accent/30 rounded-2xl border border-border/50">
                         <div className="flex justify-between items-center mb-4">
                           <p className="text-sm font-bold flex items-center gap-2 text-primary">
-                            <Pill className="w-4 h-4" />
-                            Prescription
+                            <Pill className="w-4 h-4" /> Prescription
                           </p>
-                          <button 
-                            onClick={() => downloadPDF('prescription', record.prescription.join('\n'), new Date(record.date).toLocaleDateString('fr-FR'), record.doctor)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg font-bold hover:bg-primary hover:text-white transition-all text-[10px]"
-                          >
+                          <button onClick={() => downloadPDF('prescription', record.prescription.join('\n'), new Date(record.date).toLocaleDateString('fr-FR'), record.doctor)} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg font-bold hover:bg-primary hover:text-white transition-all text-[10px]">
                             <Download className="w-3.5 h-3.5" /> PDF
                           </button>
                         </div>
@@ -380,7 +368,7 @@ export function DMP() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm font-medium text-muted-foreground text-center py-12">Aucun antécédent médical enregistré.</p>
+                <p className="text-sm font-medium text-muted-foreground text-center py-12">Aucun résultat trouvé pour votre recherche.</p>
               )}
             </div>
           </div>
@@ -417,13 +405,7 @@ export function DMP() {
                 <div key={index} className="p-5 bg-accent/30 rounded-2xl border border-border/50">
                     <div className="flex justify-between items-center">
                         <p className="text-sm font-bold">{consult.reason || "Consultation"}</p>
-                        <a 
-                            href={`/app/consultation/${consult.id}/video`}
-                            target="_blank"
-                            className="text-[10px] font-bold px-3 py-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all"
-                        >
-                            Vidéo
-                        </a>
+                        <a href={`/app/consultation/${consult.id}/video`} target="_blank" className="text-[10px] font-bold px-3 py-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all">Vidéo</a>
                     </div>
                     <p className="text-xs font-semibold text-muted-foreground mt-1">{new Date(consult.date).toLocaleDateString()}</p>
                     <p className="text-sm mt-3 text-muted-foreground italic font-medium leading-relaxed">"{consult.notes}"</p>

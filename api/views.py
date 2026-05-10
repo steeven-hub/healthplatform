@@ -103,6 +103,7 @@ def dashboard_stats_api(request):
     try:
         today = timezone.now().date()
         user = request.user
+        query = request.query_params.get('search', '')
         
         doctor = getattr(user, 'api_doctor', None)
         patient = getattr(user, 'api_patient', None)
@@ -114,6 +115,13 @@ def dashboard_stats_api(request):
             
             today_appointments = Appointment.objects.filter(doctor=doctor, date__range=(start_of_day, end_of_day)).order_by('date')
             
+            if query:
+                today_appointments = today_appointments.filter(
+                    models.Q(patient__user__first_name__icontains=query) |
+                    models.Q(patient__user__last_name__icontains=query) |
+                    models.Q(reason__icontains=query)
+                )
+
             appts_data = []
             for appt in today_appointments:
                 try:
@@ -142,8 +150,20 @@ def dashboard_stats_api(request):
             
         elif patient:
             my_appointments = Appointment.objects.filter(patient=patient).order_by('-date')
-            my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')[:5]
+            my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
             
+            if query:
+                my_appointments = my_appointments.filter(
+                    models.Q(doctor__user__first_name__icontains=query) |
+                    models.Q(doctor__user__last_name__icontains=query) |
+                    models.Q(reason__icontains=query)
+                )
+                my_records = my_records.filter(
+                    models.Q(diagnosis__icontains=query) |
+                    models.Q(prescription__icontains=query) |
+                    models.Q(doctor__user__last_name__icontains=query)
+                )
+
             appts_data = []
             for a in my_appointments:
                 try:
@@ -158,7 +178,7 @@ def dashboard_stats_api(request):
                 except: continue
 
             records_data = []
-            for r in my_records:
+            for r in my_records[:5]:
                 records_data.append({
                     'id': r.id,
                     'diagnosis': r.diagnosis,
@@ -271,7 +291,16 @@ def availability_api(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def list_doctors_api(request):
+    query = request.query_params.get('search', '')
     doctors = Doctor.objects.all()
+    
+    if query:
+        doctors = doctors.filter(
+            models.Q(user__first_name__icontains=query) |
+            models.Q(user__last_name__icontains=query) |
+            models.Q(specialty__icontains=query)
+        )
+        
     return Response([{'id': d.id, 'name': str(d), 'specialty': d.specialty, 'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={d.user.username}"} for d in doctors])
 
 @api_view(['POST', 'GET'])
@@ -458,7 +487,11 @@ def chat_sessions_list_api(request):
             patient, _ = Patient.objects.get_or_create(user=user)
 
     if request.method == 'GET':
+        query = request.query_params.get('search', '')
         sessions = ChatSession.objects.filter(patient=patient).order_by('-started_at')
+        if query:
+            sessions = sessions.filter(title__icontains=query)
+            
         return Response([{
             'id': s.id,
             'title': s.title,

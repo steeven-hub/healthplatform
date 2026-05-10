@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, AlertCircle, Calendar, Activity, TrendingUp, TrendingDown, Loader2, Clock, CheckCircle, FileText, Download } from "lucide-react";
+import { Users, AlertCircle, Calendar, Activity, TrendingUp, TrendingDown, Loader2, Clock, CheckCircle, FileText, Download, Search as SearchIcon } from "lucide-react";
 import { Link } from "react-router";
 import api from "../api";
 import { jsPDF } from "jspdf";
@@ -10,6 +10,18 @@ export function Dashboard() {
   const { t } = useTranslation();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchStats = async () => {
+    try {
+      const response = await api.get(`/stats/?search=${searchTerm}`);
+      setData(response.data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des stats:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const downloadPDF = (record: any) => {
     const doc = new jsPDF();
@@ -53,18 +65,13 @@ export function Dashboard() {
   };
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await api.get("/stats/");
-        setData(response.data);
-      } catch (error) {
-        console.error("Erreur lors de la récupération des stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchStats();
   }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchStats();
+  };
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -86,12 +93,6 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* DEBUG: Affichage des données brutes */}
-      <div className="p-4 bg-gray-100 rounded-lg text-xs overflow-auto">
-        <h4 className="font-bold">Données API reçues (Debug):</h4>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      </div>
-
       {/* Header & Health Pulse */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -129,7 +130,24 @@ export function Dashboard() {
         })}
       </div>
 
-      {/* Content Areas - Same logic but refined cards */}
+      {/* Search Bar for Lists */}
+      <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
+        <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input 
+                    type="text"
+                    placeholder="Filtrer les rendez-vous, patients ou documents..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-accent/20 border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+            </div>
+            <button type="submit" className="px-6 py-2 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20">
+                Rechercher
+            </button>
+        </form>
+      </div>
 
       {data?.role === 'doctor' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -178,10 +196,20 @@ export function Dashboard() {
             </div>
             <div className="space-y-3">
               {data?.today_patients && data.today_patients.map((appt: any) => (
-                  <div key={appt.id} style={{ border: '1px solid black', padding: '10px', margin: '5px' }}>
-                    <p>Patient: {appt.patient_name}</p>
-                    <p>Heure: {appt.time}</p>
-                    <Link to={`/app/consultation/${appt.id}/video`} style={{ background: 'blue', color: 'white', padding: '5px' }}>
+                  <div key={appt.id} className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-accent/20 transition-all">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <Clock className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm">{appt.patient_name}</p>
+                            <p className="text-[10px] text-muted-foreground">{appt.time} - {appt.type}</p>
+                        </div>
+                    </div>
+                    <Link 
+                        to={`/app/consultation/${appt.id}/video`} 
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm"
+                    >
                       Vidéo
                     </Link>
                   </div>

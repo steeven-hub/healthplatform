@@ -12,11 +12,13 @@ export function BookAppointment() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reason, setReason] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
       const [doctorsRes, appointmentsRes] = await Promise.all([
-        api.get("list-doctors/"),
+        api.get(`list-doctors/?search=${searchTerm}`),
         api.get("book-appointment/")
       ]);
       setDoctors(doctorsRes.data);
@@ -30,6 +32,11 @@ export function BookAppointment() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchData();
+  };
 
   const handleSelectDoctor = async (doctor: any) => {
     setSelectedDoctor(doctor);
@@ -122,7 +129,28 @@ export function BookAppointment() {
       </div>
 
       <div className="border-t border-border pt-12">
-        <h3 className="text-2xl font-bold mb-8">Réserver un nouveau créneau</h3>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <h3 className="text-2xl font-bold">Réserver un nouveau créneau</h3>
+            
+            {!selectedDoctor && (
+              <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
+                <div className="relative flex-1 md:w-80">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input 
+                    type="text" 
+                    placeholder="Rechercher un médecin, une spécialité..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-card border border-border/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <button type="submit" className="px-6 py-2 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20">
+                  Rechercher
+                </button>
+              </form>
+            )}
+        </div>
+
         {!selectedDoctor ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {doctors.map((doctor) => (

@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 import { Layout } from "./components/Layout";
 import { Dashboard } from "./components/Dashboard";
 import { DMP } from "./components/DMP";
+import { PatientsList } from "./components/PatientsList";
 import { AIAssistant } from "./components/AIAssistant";
 import { Admissions } from "./components/Admissions";
 import { Login } from "./components/Login";
@@ -47,7 +48,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: "dashboard", Component: Dashboard },
-      { path: "dmp", Component: DMP },
+      { path: "dmp", Component: PatientsList },
       { path: "dmp/:patientId", Component: DMP },
       { path: "assistant", Component: AIAssistant },
       { path: "admissions", Component: Admissions },
