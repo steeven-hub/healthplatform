@@ -132,19 +132,19 @@ def dashboard_stats_api(request):
             })
             
         elif patient:
-            # Récupérer les rendez-vous du patient
-            my_appointments = Appointment.objects.filter(patient=patient, date__gte=timezone.now()).order_by('date')
-            my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')[:5]
+            # Récupérer tous les rendez-vous du patient pour débogage
+            all_my_appointments = Appointment.objects.filter(patient=patient).order_by('-date')
+            print(f"DEBUG: Patient ID {patient.id} - Nombre total de RDV trouvés: {all_my_appointments.count()}")
             
-            # DEBOGAGE PLUS PRÉCIS
-            print(f"DEBUG: Patient ID {patient.id} - User ID: {request.user.id}")
-            print(f"DEBUG: Nombre de RDV trouvés: {my_appointments.count()}")
+            # Appliquer le filtre de date pour l'affichage
+            my_appointments = all_my_appointments.filter(date__gte=timezone.now())
+            print(f"DEBUG: Nombre de RDV futurs trouvés: {my_appointments.count()}")
+            
+            my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')[:5]
             
             appts_data = []
             for a in my_appointments:
                 try:
-                    # Log détails de chaque rendez-vous
-                    print(f"DEBUG: RDV {a.id} - Date: {a.date} - Patient: {a.patient.id}")
                     appts_data.append({
                         'id': a.id,
                         'doctor_name': f"Dr. {a.doctor.user.last_name}",
