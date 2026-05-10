@@ -177,24 +177,13 @@ export function Dashboard() {
               <span className="text-sm text-muted-foreground">{data?.today_patients?.length || 0} {t('appointments')}</span>
             </div>
             <div className="space-y-3">
-              {data?.today_patients && data.today_patients.map((patient: any) => (
-                  <div
-                    key={patient.id}
-                    className="flex items-center gap-4 p-3 border border-border rounded-lg bg-white shadow-sm"
-                  >
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <span className="text-primary font-bold">{patient.patient_name ? patient.patient_name.charAt(0) : '?'}</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{patient.patient_name}</p>
-                      <p className="text-sm text-muted-foreground">{patient.patient_id} • {patient.type}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{patient.time}</p>
-                      <Link to={`/app/consultation/${patient.id}/video`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold">
-                        Vidéo
-                      </Link>
-                    </div>
+              {data?.today_patients && data.today_patients.map((appt: any) => (
+                  <div key={appt.id} style={{ border: '1px solid black', padding: '10px', margin: '5px' }}>
+                    <p>Patient: {appt.patient_name}</p>
+                    <p>Heure: {appt.time}</p>
+                    <Link to={`/app/consultation/${appt.id}/video`} style={{ background: 'blue', color: 'white', padding: '5px' }}>
+                      Vidéo
+                    </Link>
                   </div>
                 ))}
               {(!data?.today_patients || data.today_patients.length === 0) && (

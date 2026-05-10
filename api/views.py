@@ -416,10 +416,19 @@ def admissions_list_api(request):
     
     doctor = request.user.api_doctor
     status_filter = request.query_params.get('status', 'all')
+    search_query = request.query_params.get('search', '')
+    
     query = Appointment.objects.filter(doctor=doctor).order_by('date')
     
     if status_filter != 'all':
         query = query.filter(status=status_filter)
+        
+    if search_query:
+        query = query.filter(
+            models.Q(patient__user__first_name__icontains=search_query) |
+            models.Q(patient__user__last_name__icontains=search_query) |
+            models.Q(reason__icontains=search_query)
+        )
 
     return Response([{
         'id': a.id,
