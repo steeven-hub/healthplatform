@@ -18,7 +18,6 @@ export function VideoConsultation() {
     const fetchRoom = async () => {
       try {
         const token = localStorage.getItem('token');
-        console.log("DEBUG: Token récupéré:", token); // Log pour vérifier le token
         console.log("DEBUG: Token envoyé:", token);
         const response = await api.get(`consultations/${consultationId}/get_video_room/`);
         setRoomId(response.data.video_room_id);
