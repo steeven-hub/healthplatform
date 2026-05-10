@@ -7,14 +7,15 @@ const api = axios.create({
   },
 });
 
-// Ajout d'un intercepteur pour le token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  console.log("DEBUG: Intercepteur Axios - Token trouvé:", token ? "OUI" : "NON");
   if (token) {
-    // Utilisation de "Token" pour la compatibilité avec TokenAuthentication
     config.headers.Authorization = `Token ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 export default api;
