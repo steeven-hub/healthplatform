@@ -640,12 +640,21 @@ def dashboard_view(request):
     }
     return render(request, 'api/home.html', context)
 
-@login_required(login_url='/api/login/')
-def patients_list_view(request):
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def list_patients_api(request):
     if not hasattr(request.user, 'api_doctor'):
-        messages.error(request, "Accès réservé au personnel médical.")
-        return redirect('home')
-    return render(request, 'api/patients_list.html', {'patients': Patient.objects.all()})
+        return Response({'error': 'Accès réservé au personnel médical.'}, status=403)
+    
+    patients = Patient.objects.all()
+    data = [{
+        'id': f"P-{p.id}",
+        'name': f"{p.user.first_name} {p.user.last_name}",
+        'phone': p.phone,
+        'username': p.user.username
+    } for p in patients]
+    
+    return Response(data)
 
 
 @api_view(['PATCH'])
