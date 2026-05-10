@@ -8,6 +8,9 @@ router = DefaultRouter()
 router.register(r'consultations', ConsultationViewSet)
 
 urlpatterns = [
+    # 1. Health check (Public)
+    path('health/', health_check, name='health_check'),
+
     # 2. Routes API existantes
     path('', include(router.urls)),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),

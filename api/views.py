@@ -1,6 +1,5 @@
 import os
 import requests
-import urllib3
 import json
 import stripe
 from django.shortcuts import render, redirect, get_object_or_404
@@ -58,8 +57,17 @@ from notifications.models import Notification
 from .models import ApiRecord
 from .serializers import *
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 User = get_user_model()
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def health_check(request):
+    """Point de terminaison public pour le monitoring du service (Render)."""
+    return Response({
+        'status': 'ok', 
+        'timestamp': timezone.now(),
+        'service': 'AfriHealth API'
+    })
 
 @api_view(['POST', 'GET'])
 @permission_classes([permissions.AllowAny])
@@ -70,7 +78,7 @@ def register_view(request):
         if serializer.is_valid():
             try:
                 serializer.save()
-                return Response({'message': "Compte créé !"}, status=201)
+                return Response({'message': "Compte créé avec succès !"}, status=201)
             except Exception as e:
                 return Response({'error': str(e)}, status=400)
         return Response(serializer.errors, status=400)
@@ -132,12 +140,8 @@ def dashboard_stats_api(request):
             })
             
         elif patient:
-            # Récupérer tous les rendez-vous du patient (futurs et passés)
             my_appointments = Appointment.objects.filter(patient=patient).order_by('-date')
-            print(f"DEBUG: Patient {patient.id} - Nombre TOTAL de RDV trouvés: {my_appointments.count()}")
-            
             my_records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')[:5]
-
             
             appts_data = []
             for a in my_appointments:
@@ -150,10 +154,7 @@ def dashboard_stats_api(request):
                         'reason': a.reason,
                         'status': a.status
                     })
-                except Exception as e:
-                    print(f"DEBUG: Erreur formatage RDV {a.id}: {e}")
-                    continue
-
+                except: continue
 
             records_data = []
             for r in my_records:
@@ -186,7 +187,7 @@ def dashboard_stats_api(request):
                 'message': "Accès administrateur"
             })
     except Exception as e:
-        return Response({'error': str(e), 'trace': 'Erreur interne stats'}, status=500)
+        return Response({'error': str(e)}, status=500)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -204,12 +205,9 @@ def patient_detail_api(request, patient_id):
             })
         elif hasattr(user, 'api_patient'):
             patient = user.api_patient
-        elif user.role == 'patient':
-            patient = Patient.objects.create(user=user)
         else:
             return Response({'error': 'Compte sans profil.'}, status=404)
         
-        # Suite pour les patients
         records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
         return Response({
             'id': f"P-{patient.id}",
@@ -219,30 +217,19 @@ def patient_detail_api(request, patient_id):
             'age': 45, 'gender': 'M', 'address': 'Abidjan',
             'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
             'allergies': [], 'chronicConditions': [],
-            'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else [], 'vitals': {'bp':'N/A','hr':'N/A','temp':'N/A','weight':'N/A'}} for r in records],
+            'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
             'consultations': []
         })
     else:
         patient = get_object_or_404(Patient, id=str(patient_id).replace('P-', ''))
         
-        # Vérification robuste des permissions
-        is_doctor_profile = Doctor.objects.filter(user=user).exists()
-        is_patient_profile = Patient.objects.filter(user=user).exists()
+        is_doctor = hasattr(user, 'api_doctor')
+        is_owner = hasattr(user, 'api_patient') and user.api_patient.id == patient.id
         
-        is_doctor = (user.role == 'doctor' or is_doctor_profile)
-        
-        patient_obj_for_user = Patient.objects.filter(user=user).first()
-        is_patient_owner = (patient_obj_for_user and patient_obj_for_user.id == patient.id)
-        
-        is_authorized = user.is_superuser or is_doctor or is_patient_owner
-        
-        if not is_authorized:
-            detail = f"User: {user.username}, Role: {user.role}, Is Dr: {is_doctor_profile}, Is Pat: {is_patient_profile}"
-            return Response({'error': 'Accès interdit', 'debug': detail}, status=403)
+        if not (user.is_superuser or is_doctor or is_owner):
+            return Response({'error': 'Accès interdit'}, status=403)
     
     records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
-    
-    # Récupération des consultations réelles
     consultations = Consultation.objects.filter(patient=patient.user).order_by('-created_at')
     
     return Response({
@@ -253,7 +240,7 @@ def patient_detail_api(request, patient_id):
         'age': 45, 'gender': 'M', 'address': 'Abidjan',
         'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
         'allergies': [], 'chronicConditions': [],
-        'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else [], 'vitals': {'bp':'N/A','hr':'N/A','temp':'N/A','weight':'N/A'}} for r in records],
+        'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
         'consultations': [{'id': c.id, 'reason': c.appointment.reason if c.appointment else "Consultation", 'date': c.created_at, 'notes': c.diagnosis} for c in consultations]
     })
 
@@ -290,10 +277,9 @@ def list_doctors_api(request):
 @permission_classes([permissions.IsAuthenticated])
 def book_appointment_api(request):
     user = request.user
-    if not hasattr(user, 'api_patient'):
+    patient = getattr(user, 'api_patient', None)
+    if not patient:
         patient = Patient.objects.create(user=user)
-    else:
-        patient = user.api_patient
 
     if request.method == 'GET':
         appts = Appointment.objects.filter(patient=patient).order_by('-date')
@@ -322,7 +308,6 @@ def book_appointment_api(request):
     avail.is_booked = True
     avail.save()
 
-    # Notification pour le Médecin
     Notification.objects.create(
         user=avail.doctor.user,
         title="Nouveau Rendez-vous",
@@ -382,6 +367,7 @@ def notifications_api(request):
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def generate_medical_report(request):
+    """Génère un rapport ou une ordonnance via l'IA Gemini (Sécurisé)."""
     if not hasattr(request.user, 'api_doctor'):
         return Response({'error': 'Accès réservé aux médecins'}, status=403)
     
@@ -402,7 +388,8 @@ def generate_medical_report(request):
     prompt += "\nFormatte la réponse proprement en texte clair avec des sauts de ligne. Sois précis et professionnel."
 
     try:
-        res = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15, verify=False).json()
+        # SSL Verification active pour la sécurité
+        res = requests.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15).json()
         content = res['candidates'][0]['content']['parts'][0]['text'] if 'candidates' in res else "Erreur génération IA."
         return Response({'content': content})
     except Exception as e:
@@ -484,7 +471,7 @@ def chat_sessions_list_api(request):
         
         user_name = f"{user.first_name} {user.last_name}".strip() or user.username
         role_label = "Docteur" if is_doctor else "Patient"
-        welcome_text = f"Bonjour {role_label} {user_name}, je suis votre assistant IA. Comment puis-je vous aider dans cette nouvelle conversation ?"
+        welcome_text = f"Bonjour {role_label} {user_name}, je suis votre assistant IA. Comment puis-je vous aider ?"
         ChatMessage.objects.create(session=session, sender='assistant', content=welcome_text)
         
         return Response({
@@ -496,6 +483,7 @@ def chat_sessions_list_api(request):
 @api_view(['GET', 'POST'])
 @permission_classes([permissions.IsAuthenticated])
 def ai_assistant_view(request):
+    """Interface de discussion avec l'IA Gemini (Sécurisé)."""
     user = request.user
     user_name = f"{user.first_name} {user.last_name}".strip() or user.username
     
@@ -550,10 +538,6 @@ def ai_assistant_view(request):
 
     ChatMessage.objects.create(session=session, sender='patient', content=msg_content)
 
-    if session.title in ["Discussion avec Wilson", "Discussion avec l'IA", "Discussion initiale"]:
-        session.title = msg_content[:40] + ("..." if len(msg_content) > 40 else "")
-        session.save()
-
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={settings.API_KEY}"
     context = f"Tu es l'assistant intelligent de la plateforme AfriHealth. Tu parles à {role_label} {user_name}."
     history_objs = session.messages.all().order_by('-timestamp')[:10][::-1]
@@ -566,29 +550,25 @@ def ai_assistant_view(request):
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=15, verify=False)
+        # SSL Verification active
+        response = requests.post(url, json=payload, timeout=15)
         res = response.json()
         
         if 'candidates' in res and len(res['candidates']) > 0:
             reply = res['candidates'][0]['content']['parts'][0]['text']
         else:
-            error_msg = res.get('error', {}).get('message', 'Pas de message d\'erreur')
-            block_reason = ""
-            if 'promptFeedback' in res:
-                block_reason = f" (Bloqué par sécurité: {res['promptFeedback'].get('blockReason', 'inconnu')})"
-            reply = f"Désolé, l'assistant IA rencontre une difficulté : {error_msg}{block_reason}"
+            reply = "Désolé, l'assistant IA rencontre une difficulté technique."
             
         ChatMessage.objects.create(session=session, sender='assistant', content=reply)
         return Response({'reply': reply, 'session_id': session.id})
     except Exception as e:
-        return Response({'reply': f"L'assistant IA est indisponible (Erreur réseau/serveur) : {str(e)}"}, status=500)
+        return Response({'error': str(e)}, status=500)
 
 @api_view(['DELETE'])
 @permission_classes([permissions.IsAuthenticated])
 def delete_chat_session_api(request, session_id):
     session = get_object_or_404(ChatSession, id=session_id)
-    is_doctor = hasattr(request.user, 'api_doctor')
-    if not is_doctor and request.user.api_patient != session.patient:
+    if not hasattr(request.user, 'api_doctor') and request.user.api_patient != session.patient:
         return Response({'error': 'Accès interdit'}, status=403)
     session.delete()
     return Response({'message': 'Session supprimée'}, status=204)
@@ -596,18 +576,10 @@ def delete_chat_session_api(request, session_id):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def token_login_api(request):
+    """Authentification sécurisée par Token. Le bypass 'demo' a été supprimé."""
     username = request.data.get('username')
     password = request.data.get('password')
-    role = request.data.get('role')
 
-    if role and not username:
-        demo_user = User.objects.filter(role=role).first()
-        if demo_user:
-            from rest_framework.authtoken.models import Token
-            token, _ = Token.objects.get_or_create(user=demo_user)
-            return Response({'token': token.key, 'role': demo_user.role})
-        return Response({'error': f'Aucun compte démo trouvé pour le rôle {role}'}, status=404)
-    
     if not username or not password:
         return Response({'error': 'Veuillez fournir username et password'}, status=400)
         
@@ -617,7 +589,7 @@ def token_login_api(request):
         token, _ = Token.objects.get_or_create(user=user)
         return Response({'token': token.key, 'role': user.role})
         
-    return Response({'error': 'Identifiants invalides'}, status=400)
+    return Response({'error': 'Identifiants invalides'}, status=401)
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -631,7 +603,7 @@ def login_view(request):
             messages.success(request, f"Ravi de vous revoir, {user.first_name} !")
             return redirect('home')
         else:
-            messages.error(request, "Identifiants incorrects. Veuillez réessayer.")
+            messages.error(request, "Identifiants incorrects.")
     return render(request, 'login.html')
 
 def logout_user(request):
@@ -642,15 +614,53 @@ def logout_user(request):
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def dashboard_view(request):
-    is_doctor = hasattr(request.user, 'api_doctor')
-    is_patient = hasattr(request.user, 'api_patient')
-    context = {
-        'is_doctor': is_doctor,
-        'is_patient': is_patient,
-        'total_patients': Patient.objects.count() if is_doctor else 0,
-        'total_appointments': Appointment.objects.count() if is_doctor else Appointment.objects.filter(patient__user=request.user).count()
-    }
-    return Response(context)
+    """Vue consolidée du tableau de bord (API)."""
+    try:
+        user = request.user
+        doctor = getattr(user, 'api_doctor', None)
+        patient = getattr(user, 'api_patient', None)
+        
+        if doctor:
+            total_patients = Patient.objects.count()
+            start_of_day = timezone.make_aware(timezone.datetime.combine(timezone.now().date(), timezone.datetime.min.time()))
+            end_of_day = timezone.make_aware(timezone.datetime.combine(timezone.now().date(), timezone.datetime.max.time()))
+            today_appointments = Appointment.objects.filter(doctor=doctor, date__range=(start_of_day, end_of_day)).order_by('date')
+            
+            appts_data = [{
+                'id': a.id,
+                'patient_name': f"{a.patient.user.first_name} {a.patient.user.last_name}",
+                'patient_id': f"P-{a.patient.id}",
+                'time': a.date.strftime('%H:%M'),
+                'type': a.reason or "Consultation",
+                'status': a.get_status_display()
+            } for a in today_appointments]
+
+            return Response({
+                'role': 'doctor',
+                'stats': [
+                    {'label': "Mes Patients", 'value': str(total_patients), 'icon': 'Users', 'color': 'primary'},
+                    {'label': "RDV Aujourd'hui", 'value': str(today_appointments.count()), 'icon': 'Calendar', 'color': 'secondary'},
+                ],
+                'today_patients': appts_data
+            })
+            
+        elif patient:
+            my_appointments = Appointment.objects.filter(patient=patient).order_by('-date')
+            return Response({
+                'role': 'patient',
+                'today_patients': [{
+                    'id': a.id,
+                    'patient_name': f"Dr. {a.doctor.user.last_name}",
+                    'time': a.date.strftime('%H:%M'),
+                    'date': a.date.strftime('%d/%m/%Y'),
+                    'type': a.reason,
+                    'status': a.status
+                } for a in my_appointments]
+            })
+            
+        return Response({'role': 'user', 'message': "Profil non trouvé"}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -677,19 +687,16 @@ def list_patients_api(request):
     
     return Response(data)
 
-
 @api_view(['PATCH'])
 @permission_classes([permissions.IsAuthenticated])
 def update_profile_api(request):
     user = request.user
     data = request.data
     
-    # Mise à jour des infos User
     user.first_name = data.get('first_name', user.first_name)
     user.last_name = data.get('last_name', user.last_name)
     user.save()
     
-    # Mise à jour profil spécifique
     if hasattr(user, 'api_doctor'):
         profile = user.api_doctor
         profile.phone = data.get('phone', profile.phone)
