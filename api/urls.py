@@ -35,5 +35,5 @@ urlpatterns = [
     path('register/', register_view, name='register_page'),
     path('logout/', logout_user, name='logout'),
     path('home/', dashboard_view, name='home'),
-    path('patients-list/', patients_list_view, name='patients_list'),
+    path('patients-list/', list_patients_api, name='patients_list'),
 ]
