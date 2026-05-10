@@ -90,6 +90,8 @@ export function Admissions() {
             <input
               type="text"
               placeholder="Rechercher par nom, ID ou téléphone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
