@@ -218,16 +218,16 @@ export function Dashboard() {
               {t('upcoming_appointments')}
             </h3>
             <div className="space-y-4">
-              {data?.my_appointments && data.my_appointments.length > 0 ? (
-                data.my_appointments.map((appt: any) => (
+              {data?.today_patients && data.today_patients.length > 0 ? (
+                data.today_patients.map((appt: any) => (
                   <div key={appt.id} className="flex items-center justify-between p-4 border border-border rounded-xl bg-accent/20">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                         <Calendar className="w-6 h-6 text-primary" />
                       </div>
                       <div>
-                        <p className="font-bold">{appt.doctor_name}</p>
-                        <p className="text-sm text-muted-foreground">{appt.date} à {appt.time}</p>
+                        <p className="font-bold">{appt.patient_name}</p>
+                        <p className="text-sm text-muted-foreground">{appt.date} à {appt.time} - {appt.type}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -239,8 +239,7 @@ export function Dashboard() {
                 ))
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
-                  <p>{t('no_upcoming_appointments')}</p>
-                  <Link to="/app/book-appointment" className="text-primary hover:underline mt-2 inline-block">{t('book_first_appointment')}</Link>
+                  <p>Aucune consultation récente.</p>
                 </div>
               )}
             </div>
