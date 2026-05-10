@@ -173,9 +173,8 @@ export function Dashboard() {
             <div className="space-y-3">
               {data?.today_patients && data.today_patients.length > 0 ? (
                 data.today_patients.map((patient: any) => (
-                  <Link
+                  <div
                     key={patient.id}
-                    to={`/app/dmp/${patient.patient_id}`}
                     className="flex items-center gap-4 p-3 border border-border rounded-lg hover:bg-accent transition-colors"
                   >
                     <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -195,7 +194,7 @@ export function Dashboard() {
                         {patient.status}
                       </span>
                     </div>
-                  </Link>
+                  </div>
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
