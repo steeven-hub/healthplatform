@@ -23,6 +23,7 @@ export function VideoConsultation() {
       try {
         // 1. Fetch available consultations to validate the ID
         const consultationsResponse = await api.get("consultations/"); // Assuming this endpoint exists
+        console.log("DEBUG: Consultations list response:", consultationsResponse.data); // Log the response
         const consultations = consultationsResponse.data;
         const isValidConsultation = consultations.some((c: any) => c.id === parseInt(consultationId || ''));
 
