@@ -7,15 +7,18 @@ from consultations.views import ConsultationViewSet
 router = DefaultRouter()
 router.register(r'consultations', ConsultationViewSet)
 
-urlpatterns = [
-    # 1. API REST (préfixée par api/ dans le navigateur via le routeur)
-    path('', include(router.urls)), 
-    
-    # Authentification par Token pour le frontend
-    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-    # 2. Routes IA et Stats
+urlpatterns = [
+    # 1. Routes JWT
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # 2. Routes API existantes
+    path('', include(router.urls)),
+    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path('ai-assistant/', ai_assistant_view, name='ai_assistant'),
+    # ... (le reste de vos URLs)
     path('chat-sessions/', chat_sessions_list_api, name='chat_sessions_list'),
     path('chat-sessions/<int:session_id>/delete/', delete_chat_session_api, name='delete_chat_session'),
     path('stats/', dashboard_stats_api, name='dashboard_stats'),

@@ -7,11 +7,12 @@ const api = axios.create({
   },
 });
 
-// Ajout d'un intercepteur pour le token si nécessaire plus tard
+// Ajout d'un intercepteur pour le token JWT (Bearer)
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
-    config.headers.Authorization = `Token ${token}`;
+    // Essayer Bearer d'abord, puis Token si nécessaire
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
