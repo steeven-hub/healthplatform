@@ -86,15 +86,20 @@ export function Admissions() {
 
       <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <div className="flex gap-2 flex-1">
             <input
               type="text"
               placeholder="Rechercher par nom, ID ou téléphone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 px-4 py-2 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            <button 
+              onClick={fetchAdmissions}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-bold"
+            >
+              Rechercher
+            </button>
           </div>
           <div className="flex gap-2">
             {[
