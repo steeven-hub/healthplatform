@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 export function Admissions() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [admissions, setAdmissions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
