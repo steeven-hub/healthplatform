@@ -15,7 +15,7 @@ export function Admissions() {
   const fetchAdmissions = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get(`admissions/?status=${filterStatus}`);
+      const response = await api.get(`admissions/?status=${filterStatus}&search=${searchTerm}`);
       setAdmissions(response.data);
     } catch (error) {
       console.error("Erreur lors de la récupération des admissions:", error);
