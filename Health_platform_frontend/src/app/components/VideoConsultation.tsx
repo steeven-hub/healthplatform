@@ -19,35 +19,14 @@ export function VideoConsultation() {
   useEffect(() => {
     const fetchRoomAndValidateConsultation = async () => {
       setIsLoading(true);
-      setError(null); // Clear previous errors
+      setError(null);
       try {
-        // 1. Fetch available consultations to validate the ID
-        const consultationsResponse = await api.get("consultations/");
-        console.log("DEBUG: Full Consultations response structure:", JSON.stringify(consultationsResponse.data, null, 2));
-        
-        // Handle cases: direct array, or paginated object
-        let consultations = [];
-        if (Array.isArray(consultationsResponse.data)) {
-            consultations = consultationsResponse.data;
-        } else if (consultationsResponse.data && typeof consultationsResponse.data === 'object') {
-            // Check common pagination keys
-            consultations = consultationsResponse.data.results || consultationsResponse.data.data || [];
-        }
-            
-        const isValidConsultation = consultations.some((c: any) => c.id === parseInt(consultationId || ''));
-
-        if (!isValidConsultation) {
-          throw new Error("Consultation ID invalide ou non trouvé.");
-        }
-
-        // 2. Fetch room ID if consultation is valid
+        // 2. Fetch room ID directly
         const response = await api.get(`consultations/${consultationId}/get_video_room/`);
         setRoomId(response.data.video_room_id);
       } catch (err: any) {
         console.error("Erreur room ID:", err);
-        setError(err.message || "Impossible de charger la salle de visioconférence.");
-        // Optionally redirect if the ID is truly invalid or not found
-        // navigate('/app/dashboard'); // Example redirect
+        setError("Impossible de charger la salle de visioconférence.");
       } finally {
         setIsLoading(false);
       }
