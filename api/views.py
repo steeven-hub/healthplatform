@@ -126,8 +126,10 @@ def dashboard_stats_api(request):
             for appt in today_appointments:
                 try:
                     p_name = f"{appt.patient.user.first_name} {appt.patient.user.last_name}"
+                    consultation_id = getattr(appt, 'consultation_details', None) and appt.consultation_details.id or None
                     appts_data.append({
-                        'id': appt.id,
+                        'id': consultation_id, # Utilisation de l'ID de consultation
+                        'appointment_id': appt.id, # Garder l'ID de RDV au cas où
                         'patient_name': p_name.strip() or appt.patient.user.username,
                         'patient_id': f"P-{appt.patient.id}",
                         'time': appt.date.strftime('%H:%M'),
