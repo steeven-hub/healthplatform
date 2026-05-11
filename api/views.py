@@ -65,12 +65,15 @@ User = get_user_model()
 def fix_db(request):
     from users.models import User
     from consultations.models import Consultation
+    from patients.models import Patient
     try:
         user = User.objects.get(username='Steeven57')
-        c = Consultation.objects.get(id=1)
-        c.patient = user
-        c.save()
-        return Response({"message": f"Fait ! Consultation 1 associée à {user.username}"})
+        # On crée un profil patient s'il n'existe pas
+        patient, _ = Patient.objects.get_or_create(user=user)
+        # On crée une nouvelle consultation pour cet utilisateur
+        # Note: on utilise user comme docteur temporairement pour éviter une erreur d'intégrité
+        c = Consultation.objects.create(patient=user, doctor=user, diagnosis="Consultation de test")
+        return Response({"message": f"Fait ! Consultation créée avec l'ID: {c.id}"})
     except Exception as e:
         return Response({"error": str(e)}, status=400)
 
