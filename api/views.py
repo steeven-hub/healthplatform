@@ -87,15 +87,30 @@ def register_view(request):
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
-def get_me(request):
-    user = request.user
-    return Response({
-        'id': user.id,
-        'username': user.username,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'role': user.role 
-    })
+def get_or_create_consultation(request, appointment_id):
+    """
+    Endpoint pour obtenir ou créer une consultation associée à un rendez-vous.
+    Cela garantit que l'ID de consultation est toujours valide.
+    """
+    from consultations.models import Consultation
+    from appointments.models import Appointment
+    
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    # Vérification simple des permissions (docteur ou patient du RDV)
+    if request.user != appointment.doctor.user and request.user != appointment.patient.user:
+        return Response({"error": "Non autorisé"}, status=status.HTTP_403_FORBIDDEN)
+        
+    consultation, created = Consultation.objects.get_or_create(
+        appointment=appointment,
+        defaults={
+            'patient': appointment.patient.user,
+            'doctor': appointment.doctor.user,
+            'diagnosis': "Consultation en attente"
+        }
+    )
+    
+    return Response({"consultation_id": consultation.id})
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
