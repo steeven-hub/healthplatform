@@ -62,18 +62,6 @@ User = get_user_model()
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
-def create_admin_user(request):
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    username = "admin_afri"
-    password = "Password123!"
-    if not User.objects.filter(username=username).exists():
-        user = User.objects.create_superuser(username=username, password=password, email='admin@afrihealth.ci')
-        return Response({"message": f"Utilisateur {username} créé avec succès. Mot de passe: {password}"})
-    return Response({"message": "L'utilisateur existe déjà."})
-
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
 def health_check(request):
     """Point de terminaison public pour le monitoring du service (Render)."""
     return Response({
@@ -137,18 +125,29 @@ def dashboard_stats_api(request):
             appts_data = []
             for appt in today_appointments:
                 try:
+                    # Si aucune consultation n'existe, on la crée à la volée !
+                    consultation, created = Consultation.objects.get_or_create(
+                        appointment=appt,
+                        defaults={
+                            'patient': appt.patient.user,
+                            'doctor': appt.doctor.user,
+                            'diagnosis': "Consultation en attente"
+                        }
+                    )
+                    
                     p_name = f"{appt.patient.user.first_name} {appt.patient.user.last_name}"
-                    consultation_id = getattr(appt, 'consultation_details', None) and appt.consultation_details.id or None
                     appts_data.append({
-                        'id': consultation_id, # Utilisation de l'ID de consultation
-                        'appointment_id': appt.id, # Garder l'ID de RDV au cas où
+                        'id': consultation.id, # L'ID est maintenant garanti valide
+                        'appointment_id': appt.id,
                         'patient_name': p_name.strip() or appt.patient.user.username,
                         'patient_id': f"P-{appt.patient.id}",
                         'time': appt.date.strftime('%H:%M'),
                         'type': (appt.reason or "Consultation")[:30],
                         'status': appt.get_status_display()
                     })
-                except: continue
+                except Exception as e:
+                    print(f"DEBUG: Erreur création consultation auto: {e}")
+                    continue
 
             return Response({
                 'role': 'doctor',
