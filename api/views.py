@@ -62,6 +62,20 @@ User = get_user_model()
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
+def fix_db(request):
+    from users.models import User
+    from consultations.models import Consultation
+    try:
+        user = User.objects.get(username='Steeven57')
+        c = Consultation.objects.get(id=1)
+        c.patient = user
+        c.save()
+        return Response({"message": f"Fait ! Consultation 1 associée à {user.username}"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
 def health_check(request):
     """Point de terminaison public pour le monitoring du service (Render)."""
     return Response({
