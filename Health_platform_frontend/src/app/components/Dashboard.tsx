@@ -242,9 +242,13 @@ export function Dashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <Link to={`/app/consultation/${appt.id}/video`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold">
-                        Vidéo
-                      </Link>
+                      {appt.id ? (
+                          <Link to={`/app/consultation/${appt.id}/video`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold">
+                            Vidéo
+                          </Link>
+                      ) : (
+                          <span className="text-xs text-muted-foreground italic">Aucune consultation liée</span>
+                      )}
                     </div>
                   </div>
                 ))
