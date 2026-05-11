@@ -18,6 +18,19 @@ class ConsultationViewSet(viewsets.ModelViewSet):
     serializer_class = ConsultationSerializer
     permission_classes = [IsAuthenticated]
 
+    def list(self, request, *args, **kwargs):
+        print(f"DEBUG: User making list request: {request.user}") # Log the user making the list request
+        queryset = self.filter_queryset(self.get_queryset())
+        print(f"DEBUG: Available consultations queryset for list: {list(queryset.values_list('id', flat=True))}") # Log the queryset result
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def test_ai(self, request):
         ai_service = MedicalAIService()
@@ -26,10 +39,18 @@ class ConsultationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def get_video_room(self, request, pk=None):
-        consultation = self.get_object()
+        print(f"DEBUG: User making request: {request.user}") # Log the user making the request
+        
+        # Log the queryset before fetching the object
+        current_consultations = Consultation.objects.all()
+        print(f"DEBUG: Available consultations queryset (before get_object): {list(current_consultations.values_list('id', flat=True))}")
+        
+        consultation = self.get_object() # This uses get_object_or_404 based on pk and queryset
         
         # LOG DE DÉBOGAGE
-        print(f"DEBUG: Req User: {request.user}, Patient: {consultation.patient}, Doctor: {consultation.doctor}")
+        print(f"DEBUG: User making request: {request.user}") # Log the authenticated user
+        print(f"DEBUG: Patient associated with consultation: {consultation.patient}") # Log the patient object
+        print(f"DEBUG: Doctor associated with consultation: {consultation.doctor}") # Log the doctor object
         
         # Sécurité : Vérifier que l'utilisateur est bien le patient ou le docteur
         if request.user != consultation.patient and request.user != consultation.doctor:
