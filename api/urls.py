@@ -15,8 +15,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path('ai-assistant/', ai_assistant_view, name='ai_assistant'),
-    path('fix/', fix_db, name='fix_db'),
-    # ... (le reste de vos URLs)
+    path('create-admin/', create_admin_user, name='create_admin'),
     path('chat-sessions/', chat_sessions_list_api, name='chat_sessions_list'),
     path('chat-sessions/<int:session_id>/delete/', delete_chat_session_api, name='delete_chat_session'),
     path('stats/', dashboard_stats_api, name='dashboard_stats'),

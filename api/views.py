@@ -62,20 +62,15 @@ User = get_user_model()
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
-def fix_db(request):
-    from users.models import User
-    from consultations.models import Consultation
-    from patients.models import Patient
-    try:
-        user = User.objects.get(username='Steeven57')
-        # On crée un profil patient s'il n'existe pas
-        patient, _ = Patient.objects.get_or_create(user=user)
-        # On crée une nouvelle consultation pour cet utilisateur
-        # Note: on utilise user comme docteur temporairement pour éviter une erreur d'intégrité
-        c = Consultation.objects.create(patient=user, doctor=user, diagnosis="Consultation de test")
-        return Response({"message": f"Fait ! Consultation créée avec l'ID: {c.id}"})
-    except Exception as e:
-        return Response({"error": str(e)}, status=400)
+def create_admin_user(request):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    username = "admin_afri"
+    password = "Password123!"
+    if not User.objects.filter(username=username).exists():
+        user = User.objects.create_superuser(username=username, password=password, email='admin@afrihealth.ci')
+        return Response({"message": f"Utilisateur {username} créé avec succès. Mot de passe: {password}"})
+    return Response({"message": "L'utilisateur existe déjà."})
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
