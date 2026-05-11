@@ -23,12 +23,16 @@ export function VideoConsultation() {
       try {
         // 1. Fetch available consultations to validate the ID
         const consultationsResponse = await api.get("consultations/");
-        console.log("DEBUG: Consultations list response:", consultationsResponse.data);
+        console.log("DEBUG: Full Consultations response structure:", JSON.stringify(consultationsResponse.data, null, 2));
         
-        // Handle both array and object responses (e.g., if paginated)
-        const consultations = Array.isArray(consultationsResponse.data) 
-            ? consultationsResponse.data 
-            : (consultationsResponse.data.results || []);
+        // Handle cases: direct array, or paginated object
+        let consultations = [];
+        if (Array.isArray(consultationsResponse.data)) {
+            consultations = consultationsResponse.data;
+        } else if (consultationsResponse.data && typeof consultationsResponse.data === 'object') {
+            // Check common pagination keys
+            consultations = consultationsResponse.data.results || consultationsResponse.data.data || [];
+        }
             
         const isValidConsultation = consultations.some((c: any) => c.id === parseInt(consultationId || ''));
 
