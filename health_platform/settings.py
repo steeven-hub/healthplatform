@@ -51,7 +51,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'health_platform.urls'
 
 # --- CONFIGURATION SERVEUR (ASGI POUR LE CHAT) ---
