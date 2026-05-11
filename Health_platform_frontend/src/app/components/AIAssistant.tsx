@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Brain, Send, Plus, MessageSquare, Trash2, History, X } from "lucide-react";
+import { Brain, Send, Plus, MessageSquare, Trash2, History, X, Search as SearchIcon } from "lucide-react";
 import { useParams } from "react-router";
 import api from "../api";
 
@@ -19,7 +19,6 @@ export function AIAssistant() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 1. Charger la liste des sessions
   const fetchSessions = async () => {
     try {
       const params: any = {};
@@ -28,8 +27,7 @@ export function AIAssistant() {
 
       const response = await api.get("chat-sessions/", { params });
       setSessions(response.data);
-
-      // Si on n'a pas de session active, on prend la plus récente
+      
       if (!currentSessionId && response.data.length > 0) {
         setCurrentSessionId(response.data[0].id);
       }
@@ -38,9 +36,8 @@ export function AIAssistant() {
     }
   };
 
-  useEffect(() => {
-    fetchSessions();
-  }, [patientId, sessionSearch]);
+  const fetchMessages = async (sessionId: number | null) => {
+    try {
       setIsLoading(true);
       const params: any = {};
       if (sessionId) params.session_id = sessionId;
@@ -61,7 +58,7 @@ export function AIAssistant() {
 
   useEffect(() => {
     fetchSessions();
-  }, [patientId]);
+  }, [patientId, sessionSearch]);
 
   useEffect(() => {
     if (currentSessionId || isInitialLoading) {
@@ -80,7 +77,7 @@ export function AIAssistant() {
       const response = await api.post("chat-sessions/", data);
       setSessions(prev => [response.data, ...prev]);
       setCurrentSessionId(response.data.id);
-      setShowHistory(false); // Sur mobile, fermer le menu après création
+      setShowHistory(false);
     } catch (error) {
       console.error("Erreur création chat:", error);
     } finally {
@@ -130,7 +127,6 @@ export function AIAssistant() {
         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       }]);
 
-      // Mettre à jour le titre dans la liste si nécessaire
       if (response.data.session_title) {
         setSessions(prev => prev.map(s => 
           s.id === response.data.session_id ? { ...s, title: response.data.session_title } : s
@@ -153,7 +149,6 @@ export function AIAssistant() {
 
   return (
     <div className="h-full flex gap-6 overflow-hidden">
-      {/* Sidebar - Liste des conversations */}
       <div className={`${showHistory ? 'w-80' : 'w-0'} transition-all duration-300 border-r border-border flex flex-col bg-card/50 rounded-lg overflow-hidden`}>
         <div className="p-4 border-b border-border flex items-center justify-between">
           <h3 className="flex items-center gap-2 font-bold">
@@ -216,7 +211,6 @@ export function AIAssistant() {
         </div>
       </div>
 
-      {/* Zone de Chat principale */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -280,7 +274,6 @@ export function AIAssistant() {
           </div>
         </div>
 
-        {/* Zone de Saisie */}
         <div className="flex gap-4 items-end bg-card/50 p-2 rounded-2xl border border-border">
           <div className="flex-1 relative">
             <textarea
