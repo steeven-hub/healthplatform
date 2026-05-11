@@ -243,11 +243,13 @@ export function Dashboard() {
                     </div>
                     <div className="text-right">
                       {appt.id ? (
-                          <Link to={`/app/consultation/${appt.id}/video`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold">
-                            Vidéo
-                          </Link>
+                        <Link to={`/app/consultation/${appt.id}/video`} className="px-3 py-1 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm">
+                          Vidéo
+                        </Link>
                       ) : (
-                          <span className="text-xs text-muted-foreground italic">Aucune consultation liée</span>
+                        <span className="px-3 py-1 bg-gray-200 text-gray-500 rounded-lg text-xs font-bold cursor-not-allowed">
+                          Non disponible
+                        </span>
                       )}
                     </div>
                   </div>

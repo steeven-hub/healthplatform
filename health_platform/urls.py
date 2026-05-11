@@ -18,11 +18,7 @@ urlpatterns = [
     path('payments/', include('payments.urls')),
     path('consultations/', include('consultations.urls')),
     path('medicalrecords/', include('medicalrecords.urls')),
-
-    # Servir le frontend React pour toutes les autres routes
-    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]
-
 # INDISPENSABLE : Permet de consulter les fichiers (PDF, Images) en développement
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
