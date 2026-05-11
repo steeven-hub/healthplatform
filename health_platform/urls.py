@@ -5,8 +5,7 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    # Redirection de la racine vers la page de connexion (Public)
-    path('', RedirectView.as_view(url='/api/login/', permanent=False)),
+    # Redirection de la racine supprimée pour laisser le frontend gérer la navigation
     
     # Interface d'administration
     path('admin/', admin.site.urls),
