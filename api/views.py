@@ -87,6 +87,18 @@ def register_view(request):
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
+def get_me(request):
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'role': user.role 
+    })
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
 def get_or_create_consultation(request, appointment_id):
     """
     Endpoint pour obtenir ou créer une consultation associée à un rendez-vous.
