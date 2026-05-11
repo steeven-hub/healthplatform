@@ -1,30 +1,26 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import RedirectView
+from django.views.generic import RedirectView, TemplateView
 
 urlpatterns = [
-    # Redirection de la racine supprimée pour laisser le frontend gérer la navigation
-    
     # Interface d'administration
     path('admin/', admin.site.urls),
-    
-    # API globale et Vues de l'application (Centralise tes endpoints REST, Login, Register, IA)
-    # C'est ici que se trouvent /api/login/, /api/register/, /api/home/, etc.
+
+    # API globale
     path('api/', include('api.urls')), 
-    
-    # URLs des applications spécifiques (Si tu as des routes dédiées à l'intérieur de ces dossiers)
+
+    # Autres apps
     path('users/', include('users.urls')),
     path('appointments/', include('appointments.urls')),
     path('chat/', include('chat.urls')),
     path('payments/', include('payments.urls')),
-    
-    # Tu peux décommenter au fur et à mesure si tu ajoutes des fichiers urls.py dans ces dossiers
-    # path('patients/', include('patients.urls')),
-    # path('doctors/', include('doctors.urls')),
     path('consultations/', include('consultations.urls')),
-    path('medical-records/', include('medicalrecords.urls')),
+    path('medicalrecords/', include('medicalrecords.urls')),
+
+    # Servir le frontend React pour toutes les autres routes
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]
 
 # INDISPENSABLE : Permet de consulter les fichiers (PDF, Images) en développement
