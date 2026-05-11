@@ -22,9 +22,14 @@ export function VideoConsultation() {
       setError(null); // Clear previous errors
       try {
         // 1. Fetch available consultations to validate the ID
-        const consultationsResponse = await api.get("consultations/"); // Assuming this endpoint exists
-        console.log("DEBUG: Consultations list response:", consultationsResponse.data); // Log the response
-        const consultations = consultationsResponse.data;
+        const consultationsResponse = await api.get("consultations/");
+        console.log("DEBUG: Consultations list response:", consultationsResponse.data);
+        
+        // Handle both array and object responses (e.g., if paginated)
+        const consultations = Array.isArray(consultationsResponse.data) 
+            ? consultationsResponse.data 
+            : (consultationsResponse.data.results || []);
+            
         const isValidConsultation = consultations.some((c: any) => c.id === parseInt(consultationId || ''));
 
         if (!isValidConsultation) {
