@@ -33,11 +33,15 @@ export function DMP() {
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
   const [historySearch, setHistorySearch] = useState("");
 
-  const filteredHistory = patient?.history?.filter((record: any) => 
-    (record.diagnosis?.toLowerCase() || "").includes(historySearch.toLowerCase()) ||
-    (record.doctor?.toLowerCase() || "").includes(historySearch.toLowerCase()) ||
-    (record.prescription && record.prescription.join(' ').toLowerCase().includes(historySearch.toLowerCase()))
-  ) || [];
+  const filteredHistory = (patient?.history || []).filter((record: any) => {
+    if (!record) return false;
+    const diag = (record.diagnosis || "").toString().toLowerCase();
+    const doc = (record.doctor || "").toString().toLowerCase();
+    const pres = Array.isArray(record.prescription) ? record.prescription.join(' ').toLowerCase() : "";
+    const search = (historySearch || "").toString().toLowerCase();
+    
+    return diag.includes(search) || doc.includes(search) || pres.includes(search);
+  });
 
   const downloadPDF = (type: 'report' | 'prescription', content: string, date?: string, doctorName?: string) => {
     if (!content) return;
