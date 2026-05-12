@@ -11,11 +11,21 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Copie des dépendances et installation
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Construction du frontend
+COPY Health_platform_frontend/ ./Health_platform_frontend/
+WORKDIR /app/Health_platform_frontend
+RUN npm install && npm run build
+
+# Retour au répertoire racine
+WORKDIR /app
 
 # Copie du code source
 COPY . .

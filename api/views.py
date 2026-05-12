@@ -647,14 +647,29 @@ def delete_chat_session_api(request, session_id):
     session.delete()
     return Response({'message': 'Session supprimée'}, status=204)
 
+import logging
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import permissions, status
+from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+
+logger = logging.getLogger(__name__)
+
+# ... (keep existing code, find token_login_api)
+
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
+@csrf_exempt
 def token_login_api(request):
     """Authentification sécurisée par Token. Le bypass 'demo' a été supprimé."""
+    logger.info(f"DEBUG: token_login_api received data: {request.data}")
     username = request.data.get('username')
     password = request.data.get('password')
+    role = request.data.get('role')
 
     if not username or not password:
+        logger.warning(f"DEBUG: Missing credentials. Username: {username}, Password: {bool(password)}")
         return Response({'error': 'Veuillez fournir username et password'}, status=400)
         
     user = authenticate(request, username=username, password=password)
