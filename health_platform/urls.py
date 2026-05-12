@@ -3,11 +3,12 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-from django.shortcuts import render
+from django.http import FileResponse
+import os
 
 # Vue pour servir index.html
 def serve_react(request, path=None):
-    return render(request, 'Health_platform_frontend/dist/index.html')
+    return FileResponse(open(os.path.join(settings.BASE_DIR, 'Health_platform_frontend', 'dist', 'index.html'), 'rb'))
 
 urlpatterns = [
     # Interface d'administration
