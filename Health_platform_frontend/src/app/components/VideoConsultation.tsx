@@ -18,10 +18,14 @@ export function VideoConsultation() {
 
   useEffect(() => {
     const fetchRoomAndValidateConsultation = async () => {
+      if (!consultationId || consultationId === 'undefined') {
+        setError("ID de consultation manquant.");
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       setError(null);
       try {
-        // 2. Fetch room ID directly
         const response = await api.get(`consultations/${consultationId}/get_video_room/`);
         setRoomId(response.data.video_room_id);
       } catch (err: any) {
