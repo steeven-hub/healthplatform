@@ -30,7 +30,8 @@ export function VideoConsultation() {
         setRoomId(response.data.video_room_id);
       } catch (err: any) {
         console.error("Erreur room ID:", err);
-        setError("Impossible de charger la salle de visioconférence.");
+        const errorMessage = err.response?.data?.error || err.message || "Erreur inconnue";
+        setError(`Impossible de charger la salle de visioconférence: ${errorMessage}`);
       } finally {
         setIsLoading(false);
       }
