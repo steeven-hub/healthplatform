@@ -9,10 +9,12 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  const isAuthRequest = config.url?.includes('token-login') || config.url?.includes('register');
+
+  if (token && !isAuthRequest) {
     config.headers.Authorization = `Token ${token}`;
     console.log("DEBUG: Requête envoyée avec en-tête Authorization:", config.headers.Authorization);
-  } else {
+  } else if (!token) {
     console.warn("DEBUG: Aucune requête token trouvée dans localStorage");
   }
   return config;

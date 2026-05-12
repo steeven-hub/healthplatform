@@ -34,8 +34,8 @@ export function DMP() {
   const [historySearch, setHistorySearch] = useState("");
 
   const filteredHistory = patient?.history?.filter((record: any) => 
-    record.diagnosis.toLowerCase().includes(historySearch.toLowerCase()) ||
-    record.doctor.toLowerCase().includes(historySearch.toLowerCase()) ||
+    (record.diagnosis?.toLowerCase() || "").includes(historySearch.toLowerCase()) ||
+    (record.doctor?.toLowerCase() || "").includes(historySearch.toLowerCase()) ||
     (record.prescription && record.prescription.join(' ').toLowerCase().includes(historySearch.toLowerCase()))
   ) || [];
 
