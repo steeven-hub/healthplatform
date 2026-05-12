@@ -26,7 +26,9 @@ export function VideoConsultation() {
       setIsLoading(true);
       setError(null);
       try {
+        console.log(`DEBUG: Fetching video room for ID: ${consultationId}`);
         const response = await api.get(`consultations/${consultationId}/get_video_room/`);
+        console.log("DEBUG: Response from get_video_room:", response.data);
         setRoomId(response.data.video_room_id);
       } catch (err: any) {
         console.error("Erreur room ID:", err);
