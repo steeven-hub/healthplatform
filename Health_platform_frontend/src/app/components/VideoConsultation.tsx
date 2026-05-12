@@ -17,6 +17,7 @@ export function VideoConsultation() {
   const [error, setError] = useState<string | null>(null); // State for error messages
 
   useEffect(() => {
+    console.log(`DEBUG: VideoConsultation mounted, consultationId: ${consultationId}`);
     const fetchRoomAndValidateConsultation = async () => {
       if (!consultationId || consultationId === 'undefined') {
         setError("ID de consultation manquant.");
