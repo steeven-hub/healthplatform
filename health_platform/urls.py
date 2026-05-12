@@ -7,7 +7,7 @@ from django.shortcuts import render
 
 # Vue pour servir index.html
 def serve_react(request, path=None):
-    return render(request, 'index.html')
+    return render(request, 'Health_platform_frontend/dist/index.html')
 
 urlpatterns = [
     # Interface d'administration
