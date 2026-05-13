@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Users, AlertCircle, Calendar, Activity, TrendingUp, TrendingDown, Loader2, Clock, CheckCircle, FileText, Download, Search as SearchIcon } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import api from "../api";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
