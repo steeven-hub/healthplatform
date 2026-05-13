@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Search, User, Phone, ArrowRight, Loader2, UserRound } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import api from "../api";
 
 export function PatientsList() {

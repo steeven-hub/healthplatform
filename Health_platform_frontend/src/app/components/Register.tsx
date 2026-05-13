@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Eye, EyeOff, AlertCircle, Building2, Phone, Loader2, Stethoscope, UserCircle } from "lucide-react";
 import api from "../api";
 
