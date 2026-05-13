@@ -280,6 +280,7 @@ def patient_detail_api(request, patient_id):
             return Response({'error': 'Compte sans profil.'}, status=404)
         
         records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
+        consultations = Consultation.objects.filter(patient=patient.user).order_by('-created_at')
         return Response({
             'id': f"P-{patient.id}",
             'name': f"{patient.user.first_name} {patient.user.last_name}",
@@ -289,7 +290,7 @@ def patient_detail_api(request, patient_id):
             'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
             'allergies': [], 'chronicConditions': [],
             'history': [{'id': r.id, 'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
-            'consultations': []
+            'consultations': [{'id': c.id, 'reason': c.appointment.reason if c.appointment else "Consultation", 'date': c.created_at, 'notes': c.diagnosis} for c in consultations]
         })
     else:
         patient = get_object_or_404(Patient, id=str(patient_id).replace('P-', ''))
