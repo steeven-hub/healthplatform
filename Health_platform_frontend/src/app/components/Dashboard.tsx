@@ -198,6 +198,7 @@ export function Dashboard() {
             <div className="space-y-3">
               {data?.today_patients && data.today_patients.map((appt: any) => (
                   <div key={appt.id} className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-accent/20 transition-all">
+                    {console.log("DEBUG: Dashboard appt object:", appt)}
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                             <Clock className="w-5 h-5 text-primary" />
