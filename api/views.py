@@ -152,19 +152,19 @@ def dashboard_stats_api(request):
             appts_data = []
             for appt in today_appointments:
                 try:
-                    # Garantir qu'une consultation existe pour chaque RDV aujourd'hui
-                    consultation, _ = Consultation.objects.get_or_create(
+                    # Garantir qu'une consultation existe et est bien liée au bon docteur/patient
+                    consultation, _ = Consultation.objects.update_or_create(
                         appointment=appt,
                         defaults={
                             'patient': appt.patient.user,
                             'doctor': appt.doctor.user,
-                            'diagnosis': "Consultation en attente"
+                            'diagnosis': getattr(appt, 'consultation_details', None).diagnosis if hasattr(appt, 'consultation_details') else "Consultation en attente"
                         }
                     )
                     
                     p_name = f"{appt.patient.user.first_name} {appt.patient.user.last_name}"
                     appts_data.append({
-                        'id': consultation.id, # ID de la consultation pour la vidéo
+                        'id': consultation.id, 
                         'appointment_id': appt.id,
                         'patient_name': p_name.strip() or appt.patient.user.username,
                         'patient_id': f"P-{appt.patient.id}",
@@ -173,7 +173,7 @@ def dashboard_stats_api(request):
                         'status': appt.get_status_display()
                     })
                 except Exception as e:
-                    print(f"DEBUG: Erreur création consultation auto: {e}")
+                    print(f"DEBUG: Erreur sync consultation: {e}")
                     continue
 
             return Response({
@@ -315,6 +315,7 @@ def patient_detail_api(request, patient_id):
             'history': [{'id': r.id, 'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
             'consultations': [{'id': c.id, 'reason': c.appointment.reason if c.appointment else "Consultation", 'date': c.created_at, 'notes': c.diagnosis} for c in consultations]
         })
+
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def create_medical_record_api(request):

@@ -52,9 +52,9 @@ class ConsultationViewSet(viewsets.ModelViewSet):
         print(f"DEBUG: Patient associated with consultation: {consultation.patient}") # Log the patient object
         print(f"DEBUG: Doctor associated with consultation: {consultation.doctor}") # Log the doctor object
         
-        # Sécurité : Vérifier que l'utilisateur est bien le patient ou le docteur
-        if request.user != consultation.patient and request.user != consultation.doctor:
-            return Response({"error": f"Non autorisé. Vous êtes {request.user}, patient={consultation.patient}, doc={consultation.doctor}"}, status=status.HTTP_403_FORBIDDEN)
+        # Sécurité : Vérifier que l'utilisateur est bien le patient ou le docteur (comparaison par ID)
+        if request.user.id != consultation.patient_id and request.user.id != consultation.doctor_id:
+            return Response({"error": f"Accès refusé. User ID: {request.user.id}, Patient ID: {consultation.patient_id}, Doctor ID: {consultation.doctor_id}"}, status=status.HTTP_403_FORBIDDEN)
         
         # Générer un ID de salle s'il n'existe pas
         if not consultation.video_room_id:
@@ -90,8 +90,8 @@ def create_consultation(request):
 def video_room(request, consultation_id):
     consultation = get_object_or_404(Consultation, id=consultation_id)
     
-    # Vérification de sécurité
-    if request.user != consultation.patient and request.user != consultation.doctor:
+    # Vérification de sécurité (par ID)
+    if request.user.id != consultation.patient.id and request.user.id != consultation.doctor.id:
         return HttpResponse("Accès refusé", status=403)
         
     if not consultation.video_room_id:
