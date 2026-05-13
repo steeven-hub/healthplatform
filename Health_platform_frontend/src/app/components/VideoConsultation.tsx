@@ -10,7 +10,9 @@ declare global {
 }
 
 export function VideoConsultation() {
-  const { consultationId } = useParams();
+  const params = useParams();
+  const { consultationId } = params;
+  console.log("DEBUG: Full useParams object:", params);
   const navigate = useNavigate(); // Initialize useNavigate
   const [roomId, setRoomId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
