@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useParams, Link } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import {
   User,
@@ -341,13 +341,6 @@ export function DMP() {
                             <Download className="w-3.5 h-3.5" />
                             PDF Rapport
                           </button>
-                          <Link 
-                            to={`/app/consultation/${record.id}/video`}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-primary rounded-lg font-bold hover:bg-primary hover:text-white transition-all text-[10px]"
-                            title="Télécharger le compte-rendu"
-                          >
-                            Vidéo
-                          </Link>
                         </div>
                         <p className="text-sm font-semibold text-muted-foreground mt-1">
                           {new Date(record.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}

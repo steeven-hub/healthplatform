@@ -152,8 +152,8 @@ def dashboard_stats_api(request):
             appts_data = []
             for appt in today_appointments:
                 try:
-                    # Si aucune consultation n'existe, on la crée à la volée !
-                    consultation, created = Consultation.objects.get_or_create(
+                    # Garantir qu'une consultation existe pour chaque RDV aujourd'hui
+                    consultation, _ = Consultation.objects.get_or_create(
                         appointment=appt,
                         defaults={
                             'patient': appt.patient.user,
@@ -164,7 +164,7 @@ def dashboard_stats_api(request):
                     
                     p_name = f"{appt.patient.user.first_name} {appt.patient.user.last_name}"
                     appts_data.append({
-                        'id': consultation.id, # L'ID est maintenant garanti valide
+                        'id': consultation.id, # ID de la consultation pour la vidéo
                         'appointment_id': appt.id,
                         'patient_name': p_name.strip() or appt.patient.user.username,
                         'patient_id': f"P-{appt.patient.id}",
@@ -207,12 +207,22 @@ def dashboard_stats_api(request):
             appts_data = []
             for a in my_appointments:
                 try:
+                    # Garantir qu'une consultation existe pour le patient aussi
+                    consultation, _ = Consultation.objects.get_or_create(
+                        appointment=a,
+                        defaults={
+                            'patient': a.patient.user,
+                            'doctor': a.doctor.user,
+                            'diagnosis': "Consultation en attente"
+                        }
+                    )
                     appts_data.append({
-                        'id': a.id,
-                        'doctor_name': f"Dr. {a.doctor.user.last_name}",
+                        'id': consultation.id, # ID de la consultation
+                        'appointment_id': a.id,
+                        'patient_name': f"Dr. {a.doctor.user.last_name}", # On réutilise patient_name pour le label frontend
                         'time': a.date.strftime('%H:%M'),
                         'date': a.date.strftime('%d/%m/%Y'),
-                        'reason': a.reason,
+                        'type': a.reason,
                         'status': a.status
                     })
                 except: continue
@@ -278,7 +288,7 @@ def patient_detail_api(request, patient_id):
             'age': 45, 'gender': 'M', 'address': 'Abidjan',
             'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
             'allergies': [], 'chronicConditions': [],
-            'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
+            'history': [{'id': r.id, 'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
             'consultations': []
         })
     else:
@@ -290,21 +300,20 @@ def patient_detail_api(request, patient_id):
         if not (user.is_superuser or is_doctor or is_owner):
             return Response({'error': 'Accès interdit'}, status=403)
     
-    records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
-    consultations = Consultation.objects.filter(patient=patient.user).order_by('-created_at')
-    
-    return Response({
-        'id': f"P-{patient.id}",
-        'name': f"{patient.user.first_name} {patient.user.last_name}",
-        'bloodGroup': getattr(patient, 'blood_group', 'N/A') or 'N/A',
-        'phone': getattr(patient, 'phone', 'N/A') or 'N/A',
-        'age': 45, 'gender': 'M', 'address': 'Abidjan',
-        'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
-        'allergies': [], 'chronicConditions': [],
-        'history': [{'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
-        'consultations': [{'id': c.id, 'reason': c.appointment.reason if c.appointment else "Consultation", 'date': c.created_at, 'notes': c.diagnosis} for c in consultations]
-    })
-
+        records = MedicalRecord.objects.filter(patient=patient).order_by('-date_created')
+        consultations = Consultation.objects.filter(patient=patient.user).order_by('-created_at')
+        
+        return Response({
+            'id': f"P-{patient.id}",
+            'name': f"{patient.user.first_name} {patient.user.last_name}",
+            'bloodGroup': getattr(patient, 'blood_group', 'N/A') or 'N/A',
+            'phone': getattr(patient, 'phone', 'N/A') or 'N/A',
+            'age': 45, 'gender': 'M', 'address': 'Abidjan',
+            'photo': f"https://api.dicebear.com/7.x/avataaars/svg?seed={patient.user.username}",
+            'allergies': [], 'chronicConditions': [],
+            'history': [{'id': r.id, 'date': r.date_created.date(), 'doctor': str(r.doctor), 'diagnosis': r.diagnosis, 'prescription': r.prescription.split('\n') if r.prescription else []} for r in records],
+            'consultations': [{'id': c.id, 'reason': c.appointment.reason if c.appointment else "Consultation", 'date': c.created_at, 'notes': c.diagnosis} for c in consultations]
+        })
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def create_medical_record_api(request):
