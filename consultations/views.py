@@ -53,11 +53,9 @@ class ConsultationViewSet(viewsets.ModelViewSet):
         print(f"DEBUG: Doctor associated with consultation: {consultation.doctor}") # Log the doctor object
         
         # Sécurité : Vérifier que l'utilisateur est bien le patient ou le docteur (comparaison par ID)
+        print(f"DEBUG: Comparing User ID: {type(request.user.id)} {request.user.id} vs Patient FK: {type(consultation.patient_id)} {consultation.patient_id} vs Doctor FK: {type(consultation.doctor_id)} {consultation.doctor_id}")
         if request.user.id != consultation.patient_id and request.user.id != consultation.doctor_id:
-            # Essayer de vérifier si l'utilisateur est le patient via le profil si consultation.patient est le User
-            # La comparaison directe semble correcte si patient et doctor sont des FK vers User.
-            # L'erreur indique une différence d'ID, assurons-nous que nous comparons les bons champs.
-            return Response({"error": f"Accès refusé. Vous n'êtes pas autorisé à accéder à cette salle."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": f"Accès refusé. Utilisateur connecté: {request.user.id}. Non autorisé pour cette consultation."}, status=status.HTTP_403_FORBIDDEN)
         
         # Générer un ID de salle s'il n'existe pas
         if not consultation.video_room_id:
