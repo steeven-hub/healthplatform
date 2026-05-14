@@ -7,6 +7,7 @@ import { AIAssistant } from "./components/AIAssistant";
 import { Admissions } from "./components/Admissions";
 import { Login } from "./components/Login";
 import { Register } from "./components/Register";
+import { VerifyEmail } from "./components/VerifyEmail";
 import { Landing } from "./components/Landing";
 import { Availability } from "./components/Availability";
 import { BookAppointment } from "./components/BookAppointment";
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
   {
     path: "/register",
     Component: Register,
+  },
+  {
+    path: "/verify-email",
+    Component: VerifyEmail,
   },
   {
     path: "/app",

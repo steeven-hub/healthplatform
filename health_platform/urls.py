@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.http import FileResponse
+from django.contrib.auth import views as auth_views
 import os
 
 # Vue pour servir index.html
@@ -17,6 +18,12 @@ urlpatterns = [
     # API globale
     path('api/', include('api.urls')), 
     
+    # Authentification / Mot de passe
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    
     # Autres apps
     path('users/', include('users.urls')),
     path('appointments/', include('appointments.urls')),
@@ -26,7 +33,7 @@ urlpatterns = [
     path('medicalrecords/', include('medicalrecords.urls')),
 
     # Servir le frontend React pour toutes les autres routes
-    re_path(r'^(?!api/|admin/|users/|appointments/|chat/|payments/|consultations/|medicalrecords/).*$', serve_react),
+    re_path(r'^(?!api/|admin/|users/|appointments/|chat/|payments/|consultations/|medicalrecords/|password_reset/|reset/).*$', serve_react),
 ]
 
 # INDISPENSABLE : Permet de consulter les fichiers (PDF, Images) en développement

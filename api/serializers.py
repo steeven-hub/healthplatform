@@ -8,6 +8,7 @@ from medicalrecords.models import MedicalRecord
 from chat.models import ChatSession, ChatMessage
 from notifications.models import Notification
 from .models import ApiRecord
+from users.models import EmailVerification
 
 User = get_user_model()
 
@@ -35,14 +36,29 @@ class RegisterSerializer(serializers.Serializer):
     telephone = serializers.CharField(required=False, allow_blank=True)
 
     def create(self, validated_data):
-        # Création de l'utilisateur
+        # Création de l'utilisateur avec is_active=False
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password1'],
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', ''),
-            role=validated_data['role']
+            role=validated_data['role'],
+            is_active=False  # Désactivé jusqu'à vérification
+        )
+        
+        # Création du code de vérification
+        code = EmailVerification.generate_code()
+        EmailVerification.objects.create(user=user, code=code)
+        
+        # Envoi de l'email
+        from django.core.mail import send_mail
+        send_mail(
+            'Votre code de vérification AfriHealth',
+            f'Votre code de vérification est : {code}. Il est valide pour 10 minutes.',
+            'noreply@afrihealth.com',
+            [user.email],
+            fail_silently=False,
         )
         
         # Création du profil associé

@@ -79,11 +79,37 @@ def register_view(request):
         if serializer.is_valid():
             try:
                 serializer.save()
-                return Response({'message': "Compte créé avec succès !"}, status=201)
+                return Response({'message': "Compte créé avec succès ! Un code de vérification a été envoyé."}, status=201)
             except Exception as e:
                 return Response({'error': str(e)}, status=400)
         return Response(serializer.errors, status=400)
     return render(request, 'register.html')
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+@csrf_exempt
+def verify_code_api(request):
+    """Valide le code de vérification et active l'utilisateur."""
+    email = request.data.get('email')
+    code = request.data.get('code')
+    
+    if not email or not code:
+        return Response({'error': 'Email et code requis'}, status=400)
+    
+    try:
+        user = User.objects.get(email=email)
+        verification = EmailVerification.objects.get(user=user, code=code)
+        
+        if verification.is_valid():
+            user.is_active = True
+            user.save()
+            verification.delete()  # Supprimer le code après usage
+            return Response({'message': 'Compte activé avec succès.'})
+        else:
+            return Response({'error': 'Code expiré.'}, status=400)
+            
+    except (User.DoesNotExist, EmailVerification.DoesNotExist):
+        return Response({'error': 'Code invalide.'}, status=400)
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])

@@ -11,19 +11,6 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleDemoLogin = async (role: string) => {
-    setIsLoading(true);
-    try {
-      const response = await api.post("token-login/", { role });
-      localStorage.setItem("token", response.data.token);
-      navigate("/app/dashboard");
-    } catch (err) {
-      setError("Erreur connexion démo");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -118,7 +105,7 @@ export function Login() {
                 <input type="checkbox" className="w-4 h-4 rounded border-border" />
                 <span className="text-sm">Se souvenir de moi</span>
               </label>
-              <a href="#" className="text-sm text-primary hover:underline">
+              <a href="/password_reset/" className="text-sm text-primary hover:underline">
                 Mot de passe oublié ?
               </a>
             </div>
@@ -145,22 +132,6 @@ export function Login() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('doctor')}
-                className="flex items-center justify-center gap-2 py-3 bg-secondary/10 text-secondary hover:bg-secondary/20 rounded-lg transition-colors font-medium"
-              >
-                <Stethoscope className="w-4 h-4" />
-                Démo Médecin
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('patient')}
-                className="flex items-center justify-center gap-2 py-3 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors font-medium"
-              >
-                <UserCircle className="w-4 h-4" />
-                Démo Patient
-              </button>
             </div>
 
           </form>

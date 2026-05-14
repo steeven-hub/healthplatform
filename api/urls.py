@@ -35,6 +35,7 @@ urlpatterns = [
     # 3. Vues Authentification (Seront accessibles via /api/login/, etc.)
     path('login/', login_view, name='login_page'),
     path('register/', register_view, name='register_page'),
+    path('verify-code/', verify_code_api, name='verify_code'),
     path('logout/', logout_user, name='logout'),
     path('home/', dashboard_view, name='home'),
     path('patients-list/', list_patients_api, name='patients_list'),
