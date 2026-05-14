@@ -64,7 +64,7 @@ export function Register() {
         role: formData.role,
         specialty: formData.role === 'doctor' ? formData.specialty : '',
         license_number: formData.role === 'doctor' ? formData.license_number : '',
-        experience: formData.role === 'doctor' ? formData.experience : '0',
+        experience: formData.role === 'doctor' ? (formData.experience || '0') : '0',
         telephone: formData.telephone
       };
 
