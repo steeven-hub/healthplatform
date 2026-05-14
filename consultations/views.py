@@ -54,7 +54,10 @@ class ConsultationViewSet(viewsets.ModelViewSet):
         
         # Sécurité : Vérifier que l'utilisateur est bien le patient ou le docteur (comparaison par ID)
         if request.user.id != consultation.patient_id and request.user.id != consultation.doctor_id:
-            return Response({"error": f"Accès refusé. User ID: {request.user.id}, Patient ID: {consultation.patient_id}, Doctor ID: {consultation.doctor_id}"}, status=status.HTTP_403_FORBIDDEN)
+            # Essayer de vérifier si l'utilisateur est le patient via le profil si consultation.patient est le User
+            # La comparaison directe semble correcte si patient et doctor sont des FK vers User.
+            # L'erreur indique une différence d'ID, assurons-nous que nous comparons les bons champs.
+            return Response({"error": f"Accès refusé. Vous n'êtes pas autorisé à accéder à cette salle."}, status=status.HTTP_403_FORBIDDEN)
         
         # Générer un ID de salle s'il n'existe pas
         if not consultation.video_room_id:
