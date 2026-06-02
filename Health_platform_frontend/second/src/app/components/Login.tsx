@@ -39,9 +39,7 @@ export function Login() {
         <div className="w-full max-w-md">
           <div className="mb-8">
             <Link to="/" className="flex items-center gap-2 mb-8">
-              <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">A+</span>
-              </div>
+              <img src="/logo.png" alt="AfriHealth" className="w-10 h-10 object-contain" />
               <span className="font-bold text-xl">AfriHealth</span>
             </Link>
             <h2 className="mb-2">Bienvenue</h2>

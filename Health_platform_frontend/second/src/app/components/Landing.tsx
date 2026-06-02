@@ -57,9 +57,7 @@ export function Landing() {
       <header className="border-b border-border bg-card">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">A+</span>
-            </div>
+            <img src="/logo.png" alt="AfriHealth" className="w-10 h-10 object-contain" />
             <span className="font-bold text-xl">AfriHealth</span>
           </div>
           <nav className="hidden md:flex items-center gap-8">
@@ -234,9 +232,7 @@ export function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">A+</span>
-                </div>
+                <img src="/logo.png" alt="AfriHealth" className="w-8 h-8 object-contain" />
                 <span className="font-bold">AfriHealth</span>
               </div>
               <p className="text-sm text-muted-foreground">

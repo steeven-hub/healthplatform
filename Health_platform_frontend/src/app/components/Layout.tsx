@@ -105,9 +105,7 @@ export function Layout() {
       <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">A+</span>
-            </div>
+            <img src="/logo.png" alt="AfriHealth" className="w-8 h-8 object-contain" />
             <span className="font-bold text-xl">AfriHealth</span>
           </Link>
         </div>

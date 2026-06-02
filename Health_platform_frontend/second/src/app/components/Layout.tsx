@@ -37,9 +37,7 @@ export function Layout() {
       <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col">
         <div className="p-6 border-b border-sidebar-border">
           <h1 className="text-white flex items-center gap-2">
-            <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-              <span className="text-white">A+</span>
-            </div>
+            <img src="/logo.png" alt="AfriHealth" className="w-10 h-10 object-contain" />
             <span>AfriHealth</span>
           </h1>
           <p className="text-sidebar-foreground/70 text-sm mt-1">Plateforme de Santé Digitale</p>

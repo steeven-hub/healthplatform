@@ -86,14 +86,17 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
+    <div className="min-h-screen bg-background flex relative overflow-hidden">
+      {/* Background Logo Watermark */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.15] dark:opacity-[0.2]">
+        <img src="/logo.png" alt="" className="w-1/2 max-w-2xl object-contain grayscale" />
+      </div>
+
+      <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto relative z-10">
         <div className="w-full max-w-2xl py-8">
           <div className="mb-8 text-center md:text-left">
             <Link to="/" className="inline-flex items-center gap-2 mb-8">
-              <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">A+</span>
-              </div>
+              <img src="/logo.png" alt="AfriHealth" className="w-10 h-10 object-contain" />
               <span className="font-bold text-xl">AfriHealth</span>
             </Link>
             <h2 className="text-3xl font-bold mb-2">Créer un compte</h2>
