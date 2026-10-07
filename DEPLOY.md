@@ -1,28 +1,39 @@
-# Instructions de déploiement pour AfriHealth
+# Déploiement AfriHealth
 
-## 1. Prérequis
-- Docker et Docker Compose installés sur votre serveur.
+## Déploiement sur Render avec le runtime Python
 
-## 2. Construction de l'image
+Configurez le service Render avec les commandes suivantes :
+
+- **Runtime** : Python 3.12 ou plus récent (Django 6 l'exige)
+- **Build Command** : `./build.sh`
+- **Start Command** : `./entrypoint.sh`
+- **Health Check Path** (facultatif) : `/api/health/`
+
+`build.sh` installe les dépendances et collecte les fichiers statiques. Les migrations sont exécutées au démarrage par `entrypoint.sh`, lorsque la base de données est joignable. Daphne écoute sur `0.0.0.0` et utilise le port `PORT` fourni par Render.
+
+Ajoutez ces variables dans **Environment** sur Render :
+
+- `DATABASE_URL` : URL interne de votre base PostgreSQL Render
+- `SECRET_KEY` : clé Django robuste et privée
+- `DEBUG` : `False`
+- `STRIPE_SECRET_KEY` : clé secrète Stripe
+- `STRIPE_WEBHOOK_SECRET` : secret de signature du webhook Stripe
+- `GEMINI_API_KEY` : clé API Google Gemini
+
+Ne placez pas les valeurs secrètes dans Git. Si vous utilisez le Dockerfile plutôt que le runtime Python, laissez Render construire et lancer le Dockerfile ; son entrypoint applique également les migrations et respecte `PORT`.
+
+## Déploiement avec Docker
+
+Prérequis : Docker installé sur le serveur.
+
+### Construire l'image
+
 ```bash
 docker build -t afrihealth-backend .
 ```
 
-## 3. Lancement en production
-Utilisez un fichier `docker-compose.yml` pour orchestrer le backend, la base de données PostgreSQL et Nginx (pour servir les fichiers statiques).
+### Lancer en production
 
-## 4. Configuration des variables d'environnement
-Avant de lancer le conteneur, assurez-vous de définir les variables suivantes :
-- `STRIPE_SECRET_KEY`: Votre clé secrète Stripe.
-- `STRIPE_WEBHOOK_SECRET`: Votre clé de signature de webhook Stripe.
-- `GEMINI_API_KEY`: Votre clé API Google Gemini.
-- `SECRET_KEY`: Une clé Django robuste pour la production.
+Utilisez Docker Compose pour orchestrer le backend, PostgreSQL et, si nécessaire, un serveur Nginx pour les fichiers statiques. Définissez les variables d'environnement indiquées ci-dessus pour le conteneur.
 
-## 5. Base de données
-Le projet est configuré pour PostgreSQL. Si vous déployez avec Docker Compose, assurez-vous que le service de base de données est nommé `db` ou mettez à jour le `HOST` dans `settings.py`.
-
-## 6. Migrations
-N'oubliez pas d'exécuter les migrations après le lancement du conteneur :
-```bash
-docker exec -it <container_id> python manage.py migrate
-```
+Pour une base PostgreSQL Docker Compose, le projet doit pouvoir la joindre via `DATABASE_URL`. N'oubliez pas que les migrations sont exécutées au démarrage du backend.

@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
-# exit on error
-set -o errexit
+set -euo pipefail
 
-echo "Running Migrations..."
-python manage.py migrate --noinput || { 
-    echo "MIGRATION FAILED - Attempting to debug with full output:"
-    python manage.py migrate
-    exit 1
-}
+echo "Running database migrations..."
+python manage.py migrate --noinput
 
-echo "Starting Server on port 10000..."
-# Utilisation de 'exec' pour que Daphne reçoive les signaux de terminaison de Render
-exec daphne -b 0.0.0.0 -p 10000 health_platform.asgi:application
+PORT="${PORT:-10000}"
+echo "Starting Daphne on port ${PORT}..."
+# Keep Daphne in the foreground so Render can monitor and stop the process.
+exec daphne -b 0.0.0.0 -p "${PORT}" health_platform.asgi:application
