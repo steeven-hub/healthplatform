@@ -6,8 +6,8 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- SÉCURITÉ ---
-SECRET_KEY = 'django-insecure-votre-cle-reelle-ici' # À changer en production
-DEBUG = True
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-votre-cle-reelle-ici')
+DEBUG = os.environ.get('DEBUG', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
 ALLOWED_HOSTS = ['*']
 
 # --- APPLICATIONS (ORDRE CRITIQUE) ---
@@ -139,7 +139,14 @@ STATICFILES_DIRS = [
     BASE_DIR / 'Health_platform_frontend' / 'dist',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
